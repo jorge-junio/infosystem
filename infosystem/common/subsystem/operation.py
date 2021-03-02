@@ -134,5 +134,5 @@ class Delete(Operation):
 class Count(Operation):
 
     def do(self, session, **kwargs):
-        rows = self.driver.count(session=session)
+        rows = self.driver.count(session=session, **kwargs)
         return rows
