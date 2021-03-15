@@ -1,5 +1,6 @@
 import uuid
 from sqlalchemy.orm import exc
+from sqlalchemy import func
 from infosystem.common import exception
 
 
@@ -107,7 +108,9 @@ class Driver(object):
         for k, v in kwargs.items():
             if hasattr(self.resource, k):
                 if isinstance(v, str) and '%' in v:
-                    query = query.filter(getattr(self.resource, k).like(v))
+                    normalize = func.infosystem_normalize
+                    query = query.filter(normalize(getattr(self.resource, k))
+                                         .ilike(normalize(v)))
                 else:
                     query = query.filter(getattr(self.resource, k) == v)
 
