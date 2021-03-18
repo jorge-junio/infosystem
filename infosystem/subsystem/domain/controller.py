@@ -125,15 +125,16 @@ class Controller(controller.Controller):
     def activate(self, id1, id2):
         try:
             token_id = flask.request.headers.get('token')
-            self.manager.activate(
+            domain = self.manager.activate(
                 token_id=token_id, domain_id=id1, user_admin_id=id2)
+
+            response = {'domain': domain.to_dict()}
+            return flask.Response(response=utils.to_json(response),
+                                  status=200,
+                                  mimetype="application/json")
         except exception.InfoSystemException as exc:
             return flask.Response(response=exc.message,
                                   status=exc.status)
-
-        return flask.Response(response=None,
-                              status=204,
-                              mimetype="application/json")
 
     def create_settings(self, id):
         try:

@@ -166,7 +166,11 @@ class Activate(operation.Create):
                                        role_id=self.role_admin.id)
         self.manager.api.tokens.delete(id=self.token_id)
 
-        return True
+        domain = self.manager.api.domains.get(id=self.domain_id)
+        if not domain:
+            raise exception.BadRequest('ERROR! Domain not found')
+
+        return domain
 
 
 class CreateSettings(operation.Update):
