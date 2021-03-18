@@ -11,6 +11,8 @@ _HTML_EMAIL_USER_CREATED_TEMPLATE = """
     </div>
 
     <p>Você acaba de ser cadastrado no portal da {app_name}.</p>
+    <p><strong>Domínio:</strong> {domain_name}</p>
+    <p><strong>Usuário:</strong> {username}</p>
     <p>Para ter acesso ao sistema você deve clicar no link abaixo
         para confirmar esse email e criar uma senha.</p>
 
@@ -42,11 +44,13 @@ _HTML_EMAIL_ACTIVATE_ACCOUNT_TEMPLATE = """
     </div>
 
     <p>Você acaba de ser cadastrado no portal da {app_name}.</p>
+    <p><strong>Domínio:</strong> {domain_name}</p>
+    <p><strong>Usuário:</strong> {username}</p>
     <p>Para ter acesso ao sistema você deve clicar no link abaixo
         para o cadastro.</p>
 
     <div style="width: 100%; text-align: center">
-        <a href="{activate_url}">Clique aqui para RECUPERAR a senha.</a>
+        <a href="{activate_url}">Clique aqui para ATIVAR a conta.</a>
     </div>
 """
 
@@ -71,7 +75,8 @@ class TypeEmail(enum.Enum):
         return self.value.get('template', None)
 
 
-def get_html_reset_password(app_name, base_url, type_email, token_id, domain):
+def get_html_reset_password(app_name, base_url, type_email,
+                            token_id, domain, user):
     action = type_email.value.get('action')
 
     url = '{}/auth/reset/{}/{}?action={}'.format(base_url,
@@ -79,7 +84,10 @@ def get_html_reset_password(app_name, base_url, type_email, token_id, domain):
                                                  domain.name,
                                                  action)
 
-    return type_email.template.format(app_name=app_name, reset_url=url)
+    return type_email.template.format(app_name=app_name,
+                                      reset_url=url,
+                                      domain_name=domain.name,
+                                      username=user.name)
 
 
 def get_html_activate_account(app_name, base_url, template,
@@ -124,7 +132,7 @@ def send_email(type_email, token_id, user, domain):
 
         if type_email in [TypeEmail.USER_CREATED, TypeEmail.FORGOT_PASSWORD]:
             html = get_html_reset_password(
-                app_name, base_url, type_email, token_id, domain)
+                app_name, base_url, type_email, token_id, domain, user)
         elif type_email is TypeEmail.ACTIVATE_ACCOUNT:
             html = get_html_activate_account(app_name, base_url,
                                              type_email.template,
