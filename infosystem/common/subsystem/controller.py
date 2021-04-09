@@ -117,6 +117,21 @@ class Controller(object):
 
         return include_dict
 
+    def _entities_to_dict(self, entities, include_dicts=None):
+            collection = []
+            for entity in entities:
+                if isinstance(entity, dict):
+                    collection.append(entity)
+                else:
+                    try:
+                        collection.append(
+                            entity.to_dict(include_dict=include_dicts))
+                    except AssertionError:
+                        # ignore current entity, filter mismatch
+                        pass
+
+            return collection
+
     def create(self):
         data = flask.request.get_json()
 
@@ -163,19 +178,8 @@ class Controller(object):
             return flask.Response(response=exc.message,
                                   status=exc.status)
 
-        include_dicts = self._get_include_dicts()
-
-        collection = []
-        for entity in entities:
-            if isinstance(entity, dict):
-                collection.append(entity)
-            else:
-                try:
-                    collection.append(
-                        entity.to_dict(include_dict=include_dicts))
-                except AssertionError:
-                    # ignore current entity, filter mismatch
-                    pass
+        collection = self._entities_to_dict(
+            entities, self._get_include_dicts())
 
         response = {self.collection_wrap: collection}
 
