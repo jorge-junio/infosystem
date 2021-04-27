@@ -50,6 +50,8 @@ class Driver(object):
         return instance
 
     def create(self, entity, session):
+        if not entity.is_stable():
+            raise exception.PreconditionFailed()
         session.add(entity)
         session.flush()
 
@@ -87,6 +89,8 @@ class Driver(object):
                 raise exception.BadRequest(
                     f'Error! The attribute {key} not exists')
 
+        if not entity.is_stable():
+            raise exception.PreconditionFailed()
         session.flush()
         return entity
 
