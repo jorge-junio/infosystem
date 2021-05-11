@@ -1,3 +1,4 @@
+from typing import Any, Type
 import uuid
 from sqlalchemy.orm import exc
 from sqlalchemy import func
@@ -6,7 +7,7 @@ from infosystem.common import exception
 
 class Driver(object):
 
-    def __init__(self, resource):
+    def __init__(self, resource: Type[Any]) -> None:
         self.resource = resource
 
     def removeId(self, entity_aux):
