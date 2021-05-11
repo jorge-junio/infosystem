@@ -3,8 +3,8 @@ from infosystem.common.subsystem import router
 
 class Router(router.Router):
 
-    def __init__(self, controller, collection, routes=[]):
-        super().__init__(controller, collection, routes)
+    def __init__(self, collection, routes=[]):
+        super().__init__(collection, routes)
 
     @property
     def routes(self):
@@ -13,31 +13,31 @@ class Router(router.Router):
                 'action': 'create',
                 'method': 'POST',
                 'url': self.collection_url,
-                'callback': self.controller.create
+                'callback': 'create'
             },
             {
                 'action': 'get',
                 'method': 'GET',
                 'bypass': True,
                 'url': self.resource_url,
-                'callback': self.controller.get
+                'callback': 'get'
             },
             {
                 'action': 'list',
                 'method': 'GET',
                 'url': self.collection_url,
-                'callback': self.controller.list
+                'callback': 'list'
             },
             {
                 'action': 'update',
                 'method': 'PUT',
                 'url': self.resource_url,
-                'callback': self.controller.update
+                'callback': 'update'
             },
             {
                 'action': 'delete',
                 'method': 'DELETE',
                 'url': self.resource_url,
-                'callback': self.controller.delete
+                'callback': 'delete'
             }
         ]

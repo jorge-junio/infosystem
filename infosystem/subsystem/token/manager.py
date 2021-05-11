@@ -21,7 +21,7 @@ class Create(operation.Operation):
             password = kwargs.get('password', None)
 
             # TODO(samueldmq): allow get by unique attrs
-            domains = self.manager.api.domains.list(name=domain_name)
+            domains = self.manager.api.domains().list(name=domain_name)
 
             if not domains:
                 return False
@@ -31,10 +31,10 @@ class Create(operation.Operation):
                 password.encode('utf-8')).hexdigest()
 
             if (email is None):
-                users = self.manager.api.users.list(
+                users = self.manager.api.users().list(
                     domain_id=domain_id, name=username, password=password_hash)
             else:
-                users = self.manager.api.users.list(
+                users = self.manager.api.users().list(
                     domain_id=domain_id, email=email, password=password_hash)
 
             if not users:

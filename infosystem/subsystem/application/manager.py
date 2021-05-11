@@ -33,19 +33,19 @@ class CreateUserCapabilitiesAndPolicies(operation.Operation):
     def pre(self, session, id, **kwargs) -> bool:
         self.application_id = id
         self.user_resources = self.manager.bootstrap_resources.USER
-        self.role_id = self.manager.api.roles.\
+        self.role_id = self.manager.api.roles().\
             get_role_by_name(role_name=Role.USER).id
 
         return True
 
     def do(self, session, **kwargs):
         self.resources = {'resources': self.user_resources}
-        self.manager.api.capabilities.create_capabilities(
+        self.manager.api.capabilities().create_capabilities(
             id=self.application_id, **self.resources)
 
         self.resources['application_id'] = self.application_id
-        self.manager.api.roles.create_policies(id=self.role_id,
-                                               **self.resources)
+        self.manager.api.roles().create_policies(id=self.role_id,
+                                                 **self.resources)
 
 
 class CreateAdminCapabilitiesAndPolicies(operation.Operation):
@@ -68,10 +68,10 @@ class CreateAdminCapabilitiesAndPolicies(operation.Operation):
         self.application_id = id
         exceptions_resources = InputResourceUtils.parse_resources(exceptions)
 
-        routes = self.manager.api.routes.list(active=True)
+        routes = self.manager.api.routes().list(active=True)
         routes_resources = self._map_routes(routes)
 
-        self.admin_role_id = self.manager.api.roles.\
+        self.admin_role_id = self.manager.api.roles().\
             get_role_by_name(role_name=Role.ADMIN).id
 
         self.admin_resources = self._filter_resources(
@@ -82,12 +82,12 @@ class CreateAdminCapabilitiesAndPolicies(operation.Operation):
 
     def do(self, session, **kwargs):
         self.resources = {'resources': self.admin_resources}
-        self.manager.api.capabilities.create_capabilities(
+        self.manager.api.capabilities().create_capabilities(
             id=self.application_id, **self.resources)
 
         self.resources['application_id'] = self.application_id
-        self.manager.api.roles.create_policies(id=self.admin_role_id,
-                                               **self.resources)
+        self.manager.api.roles().create_policies(id=self.admin_role_id,
+                                                 **self.resources)
 
 
 class CreateCapabilitiesWithExceptions(operation.Operation):
@@ -110,7 +110,7 @@ class CreateCapabilitiesWithExceptions(operation.Operation):
         if not self.application_id or exceptions is None:
             raise exception.BadRequest()
 
-        routes = self.manager.api.routes.list(active=True)
+        routes = self.manager.api.routes().list(active=True)
         exceptions_resources = InputResourceUtils.parse_resources(exceptions)
         self.resources = self.\
             _filter_resources(routes,
@@ -123,7 +123,7 @@ class CreateCapabilitiesWithExceptions(operation.Operation):
 
     def do(self, session, **kwargs):
         data = {'resources', self.resources}
-        self.manager.api.capabilities.\
+        self.manager.api.capabilities().\
             create_capabilities(id=self.application_id, **data)
 
 

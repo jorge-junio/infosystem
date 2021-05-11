@@ -3,8 +3,8 @@ from infosystem.common.subsystem import router
 
 class Router(router.Router):
 
-    def __init__(self, controller, collection, routes=[]):
-        super().__init__(controller, collection, routes)
+    def __init__(self, collection, routes=[]):
+        super().__init__(collection, routes)
 
     @property
     def routes(self):
@@ -13,6 +13,6 @@ class Router(router.Router):
                 'action': 'getApplicationRoles',
                 'method': 'GET',
                 'url': self.resource_url + '/roles',
-                'callback': self.controller.get_roles
+                'callback': 'get_roles'
             }
         ]
