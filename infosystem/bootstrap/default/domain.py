@@ -1,3 +1,4 @@
+from infosystem.common.subsystem.apihandler import Api
 from typing import Dict
 
 from infosystem.common import utils
@@ -7,8 +8,8 @@ from infosystem.subsystem.domain.resource import Domain
 
 class BootstrapDomain(object):
 
-    def __init__(self, subsystems: Dict[str, Subsystem]):
-        self.domain_manager = subsystems['domains'].manager
+    def __init__(self, api: Api) -> None:
+        self.domain_manager = api.domains()
 
     def execute(self, application_id: str) -> Domain:
         domain = self._get_domain_default(application_id)
