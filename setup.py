@@ -3,7 +3,12 @@ from infosystem._version import version
 
 REQUIRED_PACKAGES = [
     'apscheduler',
-    'flask',
+    'flask==1.1.2',
+    'werkzeug==1.0.1',
+    'itsdangerous==1.1.0',
+    'Jinja2==2.11.3',
+    'MarkupSafe==1.1.1',
+    'attrs==20.3.0',
     'flask-rbac',
     'flask-sqlalchemy',
     'flask-migrate',
