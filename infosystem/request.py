@@ -16,10 +16,6 @@ class Request(flask.Request):
             return False
 
     @property
-    def method(self):
-        return self.environ['REQUEST_METHOD']
-
-    @property
     def url(self):
         path_info = flask.request.environ['PATH_INFO'].rstrip('/')
         path_bits = [

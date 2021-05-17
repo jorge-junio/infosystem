@@ -1,14 +1,14 @@
-from typing import Dict, List
+from typing import List
 
 from infosystem.common.input import RouteResource, InputResourceUtils
-from infosystem.common.subsystem import Subsystem
+from infosystem.common.subsystem.apihandler import Api
 
 
 class BootstrapPolicies(object):
 
-    def __init__(self, subsystems: Dict[str, Subsystem]):
-        self.capability_manager = subsystems['capabilities'].manager
-        self.role_manager = subsystems['roles'].manager
+    def __init__(self, api: Api) -> None:
+        self.capability_manager = api.capabilities()
+        self.role_manager = api.roles()
 
     def execute(self, application_id: str,
                 role_id: str,

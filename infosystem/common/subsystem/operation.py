@@ -68,7 +68,7 @@ class Create(Operation):
             if flask.has_request_context():
                 token_id = flask.request.headers.get('token')
                 if token_id is not None:
-                    self.token = self.manager.api.tokens.get(id=token_id)
+                    self.token = self.manager.api.tokens().get(id=token_id)
                     kwargs['created_by'] = self.token.user_id
 
         self.entity = self.driver.instantiate(**kwargs)
@@ -111,7 +111,7 @@ class Update(Operation):
             if flask.has_request_context():
                 token_id = flask.request.headers.get('token')
                 if token_id is not None:
-                    self.token = self.manager.api.tokens.get(id=token_id)
+                    self.token = self.manager.api.tokens().get(id=token_id)
                     self.entity.updated_by = self.token.user_id
 
         return self.entity.is_stable()

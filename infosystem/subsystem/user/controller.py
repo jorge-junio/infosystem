@@ -17,13 +17,13 @@ class Controller(controller.Controller):
         return flask.request.headers.get('token')
 
     def get_token(self, token_id):
-        return self.manager.api.tokens.get(id=token_id)
+        return self.manager.api.tokens().get(id=token_id)
 
     def get_domain(self, domain_id):
-        return self.manager.api.domains.get(id=domain_id)
+        return self.manager.api.domains().get(id=domain_id)
 
     def get_domain_id_from_token(self, token):
-        user = self.manager.api.users.get(id=token.user_id)
+        user = self.manager.api.users().get(id=token.user_id)
         return user.domain_id
 
     def get_domain_id(self):
@@ -80,7 +80,7 @@ class Controller(controller.Controller):
                 raise exception.BadRequest()
 
             self.manager.reset(id=token.user_id, **data)
-            self.manager.api.tokens.delete(id=token.id)
+            self.manager.api.tokens().delete(id=token.id)
         except exception.InfoSystemException as exc:
             return flask.Response(response=exc.message,
                                   status=exc.status)
@@ -95,7 +95,7 @@ class Controller(controller.Controller):
                 response=exception.BadRequestContentType.message,
                 status=exception.BadRequestContentType.status)
 
-        token = self.manager.api.tokens.get(
+        token = self.manager.api.tokens().get(
             id=flask.request.headers.get('token'))
         try:
             routes = self.manager.routes(user_id=token.user_id)
@@ -125,7 +125,7 @@ class Controller(controller.Controller):
             kwargs['domain_id'] = domain_id
             kwargs['user_id'] = user_id
             kwargs['type_image'] = 'UserPhoto'
-            image = self.manager.api.images.create(file=file, **kwargs)
+            image = self.manager.api.images().create(file=file, **kwargs)
 
             kwargs.pop('type_image')
             kwargs['photo_id'] = image.id

@@ -1,14 +1,14 @@
+from infosystem.common.subsystem.apihandler import Api
 from typing import Dict
 
 from infosystem.common import utils
-from infosystem.common.subsystem import Subsystem
 from infosystem.subsystem.application.resource import Application
 
 
 class BootstrapApplication(object):
 
-    def __init__(self, subsystems: Dict[str, Subsystem]):
-        self.application_manager = subsystems['applications'].manager
+    def __init__(self, api: Api) -> None:
+        self.application_manager = api.applications()
 
     def execute(self) -> Application:
         application = self._get_application_default()

@@ -1,6 +1,7 @@
 from typing import Dict, List
 
 from infosystem.common.subsystem import Subsystem
+from infosystem.common.subsystem.apihandler import Api
 from infosystem.common.input import RouteResource
 from infosystem.subsystem.role.resource import Role
 from infosystem.bootstrap.roles import BootstrapRoles
@@ -12,12 +13,12 @@ from infosystem.bootstrap.default.policies import BootstrapPolicies
 
 class BootstrapDefault(object):
 
-    def __init__(self, subsystems: Dict[str, Subsystem]):
-        self.bootstrap_roles = BootstrapRoles(subsystems)
-        self.bootstrap_application = BootstrapApplication(subsystems)
-        self.bootstrap_domain = BootstrapDomain(subsystems)
-        self.bootstrap_user = BootstrapUser(subsystems)
-        self.bootstrap_policies = BootstrapPolicies(subsystems)
+    def __init__(self, api: Api) -> None:
+        self.bootstrap_roles = BootstrapRoles(api)
+        self.bootstrap_application = BootstrapApplication(api)
+        self.bootstrap_domain = BootstrapDomain(api)
+        self.bootstrap_user = BootstrapUser(api)
+        self.bootstrap_policies = BootstrapPolicies(api)
 
     def execute(self, user_resources: List[RouteResource],
                 sysadmin_resources: List[RouteResource],

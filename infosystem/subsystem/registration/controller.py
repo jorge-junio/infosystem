@@ -10,7 +10,7 @@ class Controller(controller.Controller):
         return flask.request.headers.get('token')
 
     def _get_application_by_name(self, name):
-        applications = self.manager.api.applications.list(name=name)
+        applications = self.manager.api.applications().list(name=name)
         if not applications:
             raise exception.BadRequest()
         return applications[0]
@@ -38,12 +38,12 @@ class Controller(controller.Controller):
 
             application = self._get_application_by_name(application_name)
 
-            domain = self.manager.api.domains.create(
+            domain = self.manager.api.domains().create(
                 name=domain_name, application_id=application.id, active=False)
-            user = self.manager.api.users.create(
+            user = self.manager.api.users().create(
                 name=username, email=email, domain_id=domain.id, active=False)
-            self.manager.api.users.reset(id=user.id, password=password)
-            self.manager.api.users.notify(
+            self.manager.api.users().reset(id=user.id, password=password)
+            self.manager.api.users().notify(
                 id=user.id, type_email=TypeEmail.ACTIVATE_ACCOUNT)
 
         except exception.InfoSystemException as exc:
@@ -66,7 +66,7 @@ class Controller(controller.Controller):
         return (user_id, domain_id)
 
     def _get_role_admin(self):
-        roles = self.manager.api.roles.list(name='Admin')
+        roles = self.manager.api.roles().list(name='Admin')
         if not roles:
             raise exception.BadRequest()
         return roles[0]
@@ -75,18 +75,18 @@ class Controller(controller.Controller):
         try:
             (user_id, domain_id) = self._get_activate_data()
 
-            domain = self.manager.api.domains.get(id=domain_id)
-            user = self.manager.api.users.get(id=user_id)
+            domain = self.manager.api.domains().get(id=domain_id)
+            user = self.manager.api.users().get(id=user_id)
 
             if not (domain and user):
                 raise exception.BadRequest()
             role_admin = self._get_role_admin()
 
-            self.manager.api.domains.update(id=domain.id, active=True)
-            self.manager.api.users.update(id=user.id, active=True)
-            self.manager.api.grants.create(user_id=user.id,
-                                           role_id=role_admin.id)
-            self.manager.api.tokens.delete(id=self._get_token_id())
+            self.manager.api.domains().update(id=domain.id, active=True)
+            self.manager.api.users().update(id=user.id, active=True)
+            self.manager.api.grants().create(user_id=user.id,
+                                             role_id=role_admin.id)
+            self.manager.api.tokens().delete(id=self._get_token_id())
         except exception.InfoSystemException as exc:
             return flask.Response(response=exc.message,
                                   status=exc.status)

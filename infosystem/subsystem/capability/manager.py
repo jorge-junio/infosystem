@@ -39,8 +39,8 @@ class CreateCapabilities(operation.Operation):
         if not resources:
             raise exception.OperationBadRequest()
 
-        routes = self.manager.api.routes.list(sysadmin=False, active=True)
-        capabilities = self.manager.api.capabilities.list(
+        routes = self.manager.api.routes().list(sysadmin=False, active=True)
+        capabilities = self.manager.api.capabilities().list(
             application_id=self.application_id)
         routes_without_capabilities = \
             self._routes_without_capabilities(capabilities, routes)
@@ -62,7 +62,7 @@ class Delete(operation.Delete):
 
     def pre(self, session, id, **kwargs):
         super().pre(session, id=id)
-        policies = self.manager.api.policies.list(capability_id=id)
+        policies = self.manager.api.policies().list(capability_id=id)
         if policies:
             message = 'You can\'t remove this capability because' + \
                 ' there are policies associated'

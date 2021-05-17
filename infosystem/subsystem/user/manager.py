@@ -19,14 +19,14 @@ from infosystem.subsystem.role.resource import Role
 class Create(operation.Create):
 
     def pre(self, session, **kwargs):
-        self.role = self.manager.api.roles.get_role_by_name(
+        self.role = self.manager.api.roles().get_role_by_name(
             role_name=Role.USER)
         return super().pre(session, **kwargs)
 
     def do(self, session, **kwargs):
         super().do(session)
-        self.manager.api.grants.create(role_id=self.role.id,
-                                       user_id=self.entity.id)
+        self.manager.api.grants().create(role_id=self.role.id,
+                                         user_id=self.entity.id)
         return self.entity
 
 
@@ -68,13 +68,13 @@ class Restore(operation.Operation):
         if not (domain_name and email and self.reset_url):
             raise exception.OperationBadRequest()
 
-        domains = self.manager.api.domains.list(name=domain_name)
+        domains = self.manager.api.domains().list(name=domain_name)
         if not domains:
             raise exception.OperationBadRequest()
 
         self.domain = domains[0]
 
-        users = self.manager.api.users.list(
+        users = self.manager.api.users().list(
             email=email, domain_id=self.domain.id)
         if not users:
             raise exception.OperationBadRequest()
@@ -86,7 +86,7 @@ class Restore(operation.Operation):
     def do(self, session, **kwargs):
         self.manager.notify(
             id=self.user.id, type_email=TypeEmail.FORGOT_PASSWORD)
-        # token = self.manager.api.tokens.create(user=self.user)
+        # token = self.manager.api.tokens().create(user=self.user)
         # send_email(token.id, self.user, self.domain)
 
 
@@ -190,7 +190,7 @@ class DeletePhoto(operation.Update):
 
     def post(self):
         if self.photo_id:
-            self.manager.api.images.delete(id=self.photo_id)
+            self.manager.api.images().delete(id=self.photo_id)
 
 
 class Notify(operation.Operation):
@@ -213,10 +213,10 @@ class Notify(operation.Operation):
         else:
             user_token = self.user
 
-        self.token = self.manager.api.tokens.create(
+        self.token = self.manager.api.tokens().create(
             session=session, user=user_token)
 
-        self.domain = self.manager.api.domains.get(id=self.user.domain_id)
+        self.domain = self.manager.api.domains().get(id=self.user.domain_id)
         if not self.domain:
             raise exception.OperationBadRequest()
 

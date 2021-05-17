@@ -24,13 +24,13 @@ class Controller(controller.Controller):
         return flask.request.headers.get('token')
 
     def get_token(self, token_id):
-        return self.manager.api.tokens.get(id=token_id)
+        return self.manager.api.tokens().get(id=token_id)
 
     def get_domain(self, domain_id):
-        return self.manager.api.domains.get(id=domain_id)
+        return self.manager.api.domains().get(id=domain_id)
 
     def get_domain_id_from_token(self, token):
-        user = self.manager.api.users.get(id=token.user_id)
+        user = self.manager.api.users().get(id=token.user_id)
         return user.domain_id
 
     def get_domain_id(self):

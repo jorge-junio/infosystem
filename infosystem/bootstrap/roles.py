@@ -1,3 +1,4 @@
+from infosystem.common.subsystem.apihandler import Api
 import uuid
 
 from typing import Dict, List
@@ -8,8 +9,8 @@ from infosystem.subsystem.role.resource import Role
 
 class BootstrapRoles(object):
 
-    def __init__(self, subsystems: Dict[str, Subsystem]):
-        self.role_manager = subsystems['roles'].manager
+    def __init__(self, api: Api) -> None:
+        self.role_manager = api.roles()
 
     def execute(self):
         roles = self.role_manager.list()

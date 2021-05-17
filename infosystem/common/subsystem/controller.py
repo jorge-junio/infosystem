@@ -1,3 +1,4 @@
+from infosystem.common.subsystem.manager import Manager
 import flask
 
 from enum import Enum
@@ -26,7 +27,9 @@ class ListOptions(Enum):
 
 class Controller(object):
 
-    def __init__(self, manager, resource_wrap, collection_wrap):
+    def __init__(self, manager: Manager,
+                 resource_wrap: str,
+                 collection_wrap: str) -> None:
         self.manager = manager
         self.resource_wrap = resource_wrap
         self.collection_wrap = collection_wrap
