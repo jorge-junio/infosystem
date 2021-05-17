@@ -10,5 +10,7 @@ from infosystem.subsystem.user.email import TypeEmail
              default_retry_delay=5,
              retry_kwargs={'max_retries': 3})
 def send_email(user_id: str) -> None:
-    return current_app.subsystems['users'].manager.notify(
-        id=user_id, type_email=TypeEmail.ACTIVATE_ACCOUNT)
+    api = current_app.api_handler.api()
+    users_manager = api.users()
+    return users_manager.notify(id=user_id,
+                                type_email=TypeEmail.ACTIVATE_ACCOUNT)

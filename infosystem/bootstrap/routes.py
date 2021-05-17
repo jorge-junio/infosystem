@@ -1,3 +1,4 @@
+from infosystem.common.subsystem.apihandler import Api
 import uuid
 
 from typing import Dict, List
@@ -8,8 +9,8 @@ from infosystem.subsystem.route.resource import Route
 
 class BootstrapRoutes(object):
 
-    def __init__(self, subsystems: Dict[str, Subsystem]):
-        self.route_manager = subsystems['routes'].manager
+    def __init__(self, subsystems: Dict[str, Subsystem], api: Api) -> None:
+        self.route_manager = api.routes()
         self.subsystems_routes = self._get_routes_subsystems(subsystems)
 
     def _get_routes_subsystems(self,

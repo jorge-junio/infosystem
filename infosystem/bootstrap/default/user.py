@@ -1,17 +1,14 @@
-
-from typing import Dict
-
 from infosystem.common import utils
-from infosystem.common.subsystem import Subsystem
+from infosystem.common.subsystem.apihandler import Api
 from infosystem.subsystem.grant.resource import Grant
 from infosystem.subsystem.user.resource import User
 
 
 class BootstrapUser(object):
 
-    def __init__(self, subsystems: Dict[str, Subsystem]):
-        self.user_manager = subsystems['users'].manager
-        self.grant_manager = subsystems['grants'].manager
+    def __init__(self, api: Api) -> None:
+        self.user_manager = api.users()
+        self.grant_manager = api.grants()
 
     def execute(self, domain_id: str, role_id: str) -> User:
         user = self._get_user_default(domain_id)

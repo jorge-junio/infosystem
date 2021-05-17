@@ -7,6 +7,7 @@ from infosystem import subsystem as subsystem_module
 from infosystem import scheduler
 from infosystem import celery
 from infosystem.bootstrap import Bootstrap
+from infosystem.common.subsystem.apihandler import ApiHandler
 from infosystem.common.input import InputResourceUtils
 from infosystem.system import System
 from infosystem._version import version as infosystem_version
@@ -41,7 +42,9 @@ class SystemFlask(flask.Flask):
                 system_list)
 
         self.subsystems = {s.name: s for s in subsystem_list}
-        self.inject_dependencies()
+
+        self.api_handler = self.inject_dependencies()
+        self.__validate_routes(self.subsystems)
 
         for subsystem in self.subsystems.values():
             self.register_blueprint(subsystem)
@@ -78,27 +81,27 @@ class SystemFlask(flask.Flask):
     def schedule_jobs(self):
         pass
 
-    def inject_dependencies(self):
-        # api = lambda: None
-        def api():
-            None
+    def inject_dependencies(self) -> ApiHandler:
+        bootstrap_resources = {
+            'USER': self.user_resources,
+            'SYSADMIN': self.sysadmin_resources,
+            'SYSADMIN_EXCLUSIVE': self.sysadmin_exclusive_resources
+        }
+        api_handler = ApiHandler(self.subsystems, bootstrap_resources)
 
-        def bootstrap_resources():
-            None
-
-        setattr(bootstrap_resources, 'USER', self.user_resources)
-        setattr(bootstrap_resources, 'SYSADMIN', self.sysadmin_resources)
-        setattr(bootstrap_resources, 'SYSADMIN_EXCLUSIVE',
-                self.sysadmin_exclusive_resources)
-
-        for name, subsystem in self.subsystems.items():
-            setattr(api, name, subsystem.router.controller.manager)
-
-        # Dependency injection
         for subsystem in self.subsystems.values():
-            subsystem.router.controller.manager.api = api
-            subsystem.router.controller.manager.bootstrap_resources = \
-                bootstrap_resources
+            subsystem.api = api_handler.api
+
+        return api_handler
+
+    def __validate_routes(self, subsystems):
+        errors = []
+        for subsystem in subsystems.values():
+            errors = errors + subsystem.validate_routes()
+        if errors:
+            for i in errors:
+                print(i)  # TODO change to logger
+            raise Exception(*errors)
 
     def bootstrap(self):
         """Bootstrap the system.
@@ -110,7 +113,9 @@ class SystemFlask(flask.Flask):
         """
 
         with self.app_context():
-            Bootstrap(self.subsystems,
+            api = self.api_handler.api()
+            Bootstrap(api,
+                      self.subsystems,
                       self.user_resources,
                       self.sysadmin_resources,
                       self.sysadmin_exclusive_resources).\

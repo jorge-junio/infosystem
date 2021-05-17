@@ -1,9 +1,10 @@
+from infosystem.common.subsystem.driver import Driver
 from infosystem.common.subsystem import operation
 
 
 class Manager(object):
 
-    def __init__(self, driver):
+    def __init__(self, driver: Driver) -> None:
         self.driver = driver
 
         self.create = operation.Create(self)

@@ -39,7 +39,7 @@ class DomainLogoByName(operation.Operation):
             raise exception.NotFound('ERROR! Domain logo not found')
 
         kwargs['quality'] = kwargs.get('quality', QualityImage.med)
-        return self.manager.api.images.get(id=domain.logo_id, **kwargs)
+        return self.manager.api.images().get(id=domain.logo_id, **kwargs)
 
 
 class UploadLogo(operation.Update):
@@ -56,7 +56,7 @@ class UploadLogo(operation.Update):
         kwargs['user_id'] = self.token.user_id
         kwargs['type_image'] = 'DomainLogo'
 
-        image = self.manager.api.images.create(file=self.file, **kwargs)
+        image = self.manager.api.images().create(file=self.file, **kwargs)
 
         self.entity.logo_id = image.id
 
@@ -70,7 +70,7 @@ class RemoveLogo(operation.Update):
         self.entity.logo_id = None
         entity = super().do(session=session)
         if logo_id and entity is not None:
-            self.manager.api.images.delete(id=logo_id)
+            self.manager.api.images().delete(id=logo_id)
 
         return
 
@@ -79,15 +79,15 @@ class Register(operation.Create):
 
     def _register_domain(self, domain_name, domain_display_name,
                          application_id, username, email, password):
-        self.domain = self.manager.api.domains.create(
+        self.domain = self.manager.api.domains().create(
             application_id=application_id, name=domain_name,
             display_name=domain_display_name,
             addresses=[], contacts=[], active=False)
 
-        self.user = self.manager.api.users.create(
+        self.user = self.manager.api.users().create(
             name=username, email=email, domain_id=self.domain.id, active=False)
 
-        self.manager.api.users.reset(id=self.user.id, password=password)
+        self.manager.api.users().reset(id=self.user.id, password=password)
 
     def pre(self, session, username, email, password,
             domain_name, domain_display_name, application_name):
@@ -105,7 +105,7 @@ class Register(operation.Create):
                 'ERROR! Not enough data to register domain')
 
         applications = \
-            self.manager.api.applications.list(name=application_name)
+            self.manager.api.applications().list(name=application_name)
         if not applications:
             raise exception.BadRequest('ERROR! Application name not found.')
         self.application = applications[0]
@@ -113,7 +113,7 @@ class Register(operation.Create):
         return True
 
     def do(self, session, **kwargs):
-        domains = self.manager.api.domains.list(name=self.domain_name)
+        domains = self.manager.api.domains().list(name=self.domain_name)
         if not domains:
             self._register_domain(
                 self.domain_name, self.domain_display_name, self.application.id,
@@ -121,8 +121,8 @@ class Register(operation.Create):
         else:
             domain = domains[0]
 
-            users = self.manager.api.users.list(email=self.email,
-                                                domain_id=domain.id)
+            users = self.manager.api.users().list(email=self.email,
+                                                  domain_id=domain.id)
 
             if domain.active:
                 raise exception.BadRequest('Domain already activated')
@@ -131,8 +131,8 @@ class Register(operation.Create):
                 raise exception.BadRequest('Domain already registered')
 
             self.user = users[0]
-            self.manager.api.users.reset(id=self.user.id,
-                                         password=self.password)
+            self.manager.api.users().reset(id=self.user.id,
+                                           password=self.password)
 
         return True
 
@@ -152,7 +152,7 @@ class Activate(operation.Create):
         self.domain_id = domain_id
         self.user_admin_id = user_admin_id
 
-        roles = self.manager.api.roles.list(name='Admin')
+        roles = self.manager.api.roles().list(name='Admin')
         if not roles:
             raise exception.BadRequest('ERROR! Role Admin not found')
         self.role_admin = roles[0]
@@ -160,13 +160,13 @@ class Activate(operation.Create):
         return True
 
     def do(self, session, **kwargs):
-        self.manager.api.domains.update(id=self.domain_id, active=True)
-        self.manager.api.users.update(id=self.user_admin_id, active=True)
-        self.manager.api.grants.create(user_id=self.user_admin_id,
-                                       role_id=self.role_admin.id)
-        self.manager.api.tokens.delete(id=self.token_id)
+        self.manager.api.domains().update(id=self.domain_id, active=True)
+        self.manager.api.users().update(id=self.user_admin_id, active=True)
+        self.manager.api.grants().create(user_id=self.user_admin_id,
+                                         role_id=self.role_admin.id)
+        self.manager.api.tokens().delete(id=self.token_id)
 
-        domain = self.manager.api.domains.get(id=self.domain_id)
+        domain = self.manager.api.domains().get(id=self.domain_id)
         if not domain:
             raise exception.BadRequest('ERROR! Domain not found')
 
