@@ -41,8 +41,7 @@ class DomainSequence(entity.Entity, db.Model):
 
         return domain_id_stable and name_stable and value_stable
 
-    @staticmethod
-    def nextval(session, domain_id, name):
-        sql_text = text('SELECT domain_seq_nextval(:domain_id, :name)')
+    def nextval(self, step: int = 1) -> int:
+        self.value += step
 
-        return session.execute(sql_text, {'domain_id': domain_id, 'name': name})
+        return self.value
