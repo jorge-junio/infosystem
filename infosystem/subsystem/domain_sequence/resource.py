@@ -1,5 +1,4 @@
 from sqlalchemy import UniqueConstraint
-from sqlalchemy.sql import text
 
 from infosystem.database import db
 from infosystem.common.subsystem import entity
@@ -40,8 +39,3 @@ class DomainSequence(entity.Entity, db.Model):
         value_stable = self.value is not None and self.value >= 0
 
         return domain_id_stable and name_stable and value_stable
-
-    def nextval(self, step: int = 1) -> int:
-        self.value += step
-
-        return self.value

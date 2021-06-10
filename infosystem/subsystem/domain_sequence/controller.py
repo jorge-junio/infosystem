@@ -20,8 +20,7 @@ class Controller(controller.Controller):
 
             response = self.manager.get_next_val(
                 id=id,
-                name=data['name'],
-                step=data.get('step', 1))
+                name=data['name'])
         except exception.InfoSystemException as exc:
             return flask.Response(response=exc.message,
                                   status=exc.status)

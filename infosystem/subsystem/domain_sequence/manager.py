@@ -1,42 +1,25 @@
-from uuid import uuid4
-import uuid
+from sqlalchemy import text
 
 from infosystem.common.subsystem import operation, manager
 
-from infosystem.subsystem.domain_sequence.resource import DomainSequence
-
 
 class GetNextVal(operation.Operation):
-    def pre(self, session, id, name, step, **kwargs):
-        self.id = id
+    def pre(self, session, id, name, **kwargs):
+        self.domain_id = id
         self.name = name
-        self.step = int(step)
-        self.entity = session.query(DomainSequence)\
-            .filter(DomainSequence.name == self.name)\
-            .filter(DomainSequence.domain_id == self.id)\
-            .all()
 
         return super().pre(session=session)
 
     def do(self, session, **kwargs):
-        if not self.entity:
-            return self.create_domain_sequence(kwargs)
+        sql_text = text('SELECT domain_seq_nextval(:domain_id, :name)')
 
-        nextval = self.entity[0].nextval(self.step)
-
-        super().do(session=session, **kwargs)
-
-        return nextval
-
-    def create_domain_sequence(self, kwargs) -> int:
-        kwargs['id'] = uuid4().hex
-        kwargs['domain_id'] = self.id
-        kwargs['value'] = self.step
-        kwargs.pop('step', None)
-
-        self.manager.create(**kwargs)
-
-        return self.step
+        return session.execute(
+            sql_text,
+            {
+                'domain_id': self.domain_id,
+                'name': self.name
+            }
+        ).first()[0]
 
 
 class Manager(manager.Manager):
