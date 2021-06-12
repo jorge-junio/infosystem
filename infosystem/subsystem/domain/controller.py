@@ -136,20 +136,6 @@ class Controller(controller.Controller):
             return flask.Response(response=exc.message,
                                   status=exc.status)
 
-    def create_settings(self, id):
-        try:
-            data = flask.request.get_json()
-
-            settings = self.manager.create_settings(id=id, **data)
-            response = {'settings': settings}
-
-            return flask.Response(response=utils.to_json(response),
-                                  status=201,
-                                  mimetype="application/json")
-        except exception.InfoSystemException as exc:
-            return flask.Response(response=exc.message,
-                                  status=exc.status)
-
     def update_settings(self, id):
         try:
             data = flask.request.get_json()

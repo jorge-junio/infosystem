@@ -173,26 +173,6 @@ class Activate(operation.Create):
         return domain
 
 
-class CreateSettings(operation.Update):
-
-    def pre(self, session, id: str, **kwargs) -> bool:
-        self.settings = kwargs
-
-        if self.settings is None or not self.settings:
-            raise exception.BadRequest("Erro! There is not a setting")
-
-        return super().pre(session=session, id=id)
-
-    def do(self, session, **kwargs):
-        result = {}
-        for key, value in self.settings.items():
-            new_value = self.entity.create_setting(key, value)
-            result[key] = new_value
-        super().do(session)
-
-        return result
-
-
 class UpdateSettings(operation.Update):
 
     def pre(self, session, id: str, **kwargs) -> bool:
@@ -259,7 +239,6 @@ class Manager(manager.Manager):
         self.remove_logo = RemoveLogo(self)
         self.register = Register(self)
         self.activate = Activate(self)
-        self.create_settings = CreateSettings(self)
         self.update_settings = UpdateSettings(self)
         self.remove_settings = RemoveSettings(self)
         self.get_domain_settings_by_keys = GetDomainSettingsByKeys(self)
