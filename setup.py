@@ -52,7 +52,7 @@ REQUIRED_PACKAGES = [
     'SQLAlchemy==1.4.15',
     'toml==0.10.2',
     'tzlocal==2.1',
-    'urllib3==1.26.4',
+    'urllib3==1.26.5',
     'vine==5.0.0',
     'wcwidth==0.2.5',
     'Werkzeug==2.0.0',
