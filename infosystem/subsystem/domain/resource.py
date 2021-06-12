@@ -66,19 +66,7 @@ class Domain(entity.Entity, db.Model):
 
         return value
 
-    def create_setting(self, key: str, value: Any):
-        if self._has_setting(key):
-            raise exception.BadRequest(f"Erro! Setting {key} already exists")
-
-        settings = self.settings
-        settings[key] = value
-        self._save_settings(settings)
-        return value
-
     def update_setting(self, key: str, value: Any):
-        if not self._has_setting(key):
-            raise exception.BadRequest(f"Erro! Setting {key} not exists")
-
         settings = self.settings
         settings[key] = value
         self._save_settings(settings)

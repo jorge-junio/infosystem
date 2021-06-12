@@ -52,13 +52,6 @@ class Router(router.Router):
                 'bypass': True
             },
             {
-                'action': 'Create settings on Domain',
-                'method': 'POST',
-                'url': self.resource_url + settings_endpoint,
-                'callback': 'create_settings',
-                'bypass': False
-            },
-            {
                 'action': 'Update settings on Domain',
                 'method': 'PUT',
                 'url': self.resource_url + settings_endpoint,
