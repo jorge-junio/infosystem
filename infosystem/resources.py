@@ -73,6 +73,7 @@ USER_RESOURCES = [
     ('/applications/<id>', ['GET']),
     ('/domains/<id>', ['GET']),
     ('/domains/<id>/settings', ['GET']),
+    ('/domain_sequences/<id>/nextval', ['PUT']),
     ('/images/<id>', ['GET']),
 
     ('/users/<id>', ['GET', 'PUT']),

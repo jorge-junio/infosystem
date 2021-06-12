@@ -10,22 +10,22 @@ class Controller(controller.Controller):
         super(Controller, self).__init__(
             manager, resource_wrap, collection_wrap)
 
-    def get_next_val(self, id):
+    def get_nextval(self, id):
         data = flask.request.get_json()
 
         try:
             if 'name' not in data:
                 raise exception.BadRequest(
-                    'ERRO! "name" não foi enviado na requisição')
+                    'ERROR! "name" não not defined')
 
-            response = self.manager.get_next_val(
+            response = self.manager.get_nextval(
                 id=id,
                 name=data['name'])
         except exception.InfoSystemException as exc:
             return flask.Response(response=exc.message,
                                   status=exc.status)
 
-        response = {'next_val': response}
+        response = {'nextval': response}
 
         return flask.Response(response=utils.to_json(response),
                               status=200,

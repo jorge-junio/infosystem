@@ -8,10 +8,23 @@ class Router(router.Router):
 
     @property
     def routes(self):
-        return super().routes + [
+        return [
+            {
+                'action': 'get',
+                'method': 'GET',
+                'url': self.resource_url,
+                'callback': 'get'
+            },
+            {
+                'action': 'list',
+                'method': 'GET',
+                'url': self.collection_url,
+                'callback': 'list'
+            },
             {
                 'action': 'Obter novo valor da sequência',
                 'method': 'PUT',
-                'url': self.resource_url + '/next_val',
-                'callback': 'get_next_val',
-            }]
+                'url': self.resource_url + '/nextval',
+                'callback': 'get_nextval',
+            }
+        ]
