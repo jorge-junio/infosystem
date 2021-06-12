@@ -4,7 +4,6 @@ from infosystem.common.subsystem import operation, manager
 
 class GetNextVal(operation.Operation):
     def pre(self, session, id, name, **kwargs):
-        # verify domain
         domain = self.manager.api.domains().get(id=id)
         if not domain:
             raise exception.NotFound('ERROR! Domain not found')
