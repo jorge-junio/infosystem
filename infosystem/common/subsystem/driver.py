@@ -110,6 +110,12 @@ class Driver(object):
 
     def list(self, session, **kwargs):
         query = session.query(self.resource)
+
+        page = kwargs.pop('page', None)
+        page = int(page) if page is not None else None
+        page_size = kwargs.pop('page_size', None)
+        page_size = int(page_size) if page_size is not None else None
+
         for k, v in kwargs.items():
             if hasattr(self.resource, k):
                 if isinstance(v, str) and '%' in v:
@@ -118,6 +124,11 @@ class Driver(object):
                                          .ilike(normalize(v)))
                 else:
                     query = query.filter(getattr(self.resource, k) == v)
+
+        if page_size is not None:
+            query = query.limit(page_size)
+            if page is not None:
+                query = query.offset(page * page_size)
 
         result = query.all()
         return result
