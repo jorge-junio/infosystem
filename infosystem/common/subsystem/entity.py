@@ -12,6 +12,7 @@ class Entity(object):
 
     attributes = ['id', 'active', 'created_at', 'created_by',
                   'updated_at', 'updated_by', 'tag']
+    pagination_column = 'created_at desc'
 
     id = db.Column(db.CHAR(32), primary_key=True, autoincrement=False)
     active = db.Column(db.Boolean())
