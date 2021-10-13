@@ -179,7 +179,7 @@ class Controller(controller.Controller):
 
             settings = self.manager.get_domain_settings_by_keys(
                 id=id, **kwargs)
-            response = {'settings': settings}
+            response = {'domain_id': id, 'settings': settings}
 
             return flask.Response(response=utils.to_json(response),
                                   status=200,
