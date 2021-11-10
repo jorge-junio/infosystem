@@ -6,6 +6,8 @@ import sqlalchemy
 from datetime import datetime
 from infosystem import database
 from infosystem.common import exception
+from infosystem.common.operation_after_post import \
+    operation_after_post_registry
 
 
 class Operation(object):
@@ -44,7 +46,13 @@ class Operation(object):
 
             if session.count == 0:
                 session.commit()
+
             self.post()
+            key = (self.manager.__class__, self.__class__)
+            fn_after_post = operation_after_post_registry.get(key, None)
+            if fn_after_post is not None:
+                fn_after_post(self)
+
         except sqlalchemy.exc.IntegrityError as e:
             session.rollback()
             session.count -= 1
@@ -78,6 +86,7 @@ class Create(Operation):
     def do(self, session, **kwargs):
         self.driver.create(self.entity, session=session)
         return self.entity
+
 
 
 class Get(Operation):
