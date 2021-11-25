@@ -4,6 +4,8 @@ import flask
 from infosystem.common import exception
 from infosystem.common.exception import BadRequest
 from infosystem.common.subsystem import controller
+from infosystem.database import db
+from infosystem.subsystem.timeline_event.resource import TimelineEvent, TimelineEventUser
 
 
 class Controller(controller.Controller):
@@ -18,12 +20,24 @@ class Controller(controller.Controller):
             raise BadRequest()
         return user_id
 
+    def _get_timeline_event_from_user(self, session, user_id: str):
+        timeline_events = session. \
+        query(TimelineEvent). \
+        join(TimelineEventUser,
+             TimelineEventUser.timeline_event_id == TimelineEvent.id). \
+        filter(TimelineEventUser.user_id == user_id). \
+        distinct(). \
+        all()
+
+        timeline_events = map(lambda e: e, timeline_events)
+        return list(timeline_events)
+
     def get_all(self):
-        # TODO()
         try:
             user_id = self._get_user_id_in_args()
 
-            timeline_events = self.manager.list(owner_id=user_id)
+            timeline_events = self._get_timeline_event_from_user(
+                db.session, user_id)
 
             timeline_events_dict = self._entities_to_dict(
                 timeline_events, self._get_include_dicts())
