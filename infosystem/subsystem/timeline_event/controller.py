@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import json
 import flask
 
@@ -12,11 +13,14 @@ class Controller(controller.Controller):
         super(Controller, self).__init__(
             manager, resource_wrap, collection_wrap)
 
-    def _get_user_id_in_args(self):
-        user_id = flask.request.args.get('user_id')
-        if not user_id:
-            raise BadRequest()
-        return user_id
+    def _get_date(self):
+        return datetime.today() - timedelta(days=20)
+
+    def _get_initial_date_in_args(self):
+        initial_date = flask.request.args.get('initial_date', None)
+        if not initial_date:
+            initial_date = self._get_date()
+        return initial_date
 
     def _get_user_from_token(self):
         if flask.has_request_context():
@@ -27,23 +31,29 @@ class Controller(controller.Controller):
         return None
 
     def get_all(self):
+        filters = self._filters_parse()
+        filters = self._filters_cleanup(filters)
+
         try:
-            # user_id = self._get_user_id_in_args()
             user_id = self._get_user_from_token()
+            filters = self._parse_list_options(filters)
+            filters['initial_date'] = self._get_initial_date_in_args()
 
             if user_id is not None:
-                timeline_events = self.manager.get_all(user_id=user_id)
+                filters['user_id'] = user_id
             else:
-                return flask.Response("Não encontrou user_id",
-                                      status=404)
+                return flask.Response("user_id not found",
+                                      status=403)
 
-            timeline_events_dict = self._entities_to_dict(
-                timeline_events, self._get_include_dicts())
-            response = {self.collection_wrap: timeline_events_dict}
-
-            return flask.Response(response=json.dumps(response, default=str),
-                                  status=200,
-                                  mimetype="application/json")
+            timeline_events = self.manager.get_all(**filters)
         except exception.InfoSystemException as exc:
             return flask.Response(response=exc.message,
                                   status=exc.status)
+
+        timeline_events_dict = self._entities_to_dict(
+                timeline_events, self._get_include_dicts())
+        response = {self.collection_wrap: timeline_events_dict}
+
+        return flask.Response(response=json.dumps(response, default=str),
+                              status=200,
+                              mimetype="application/json")

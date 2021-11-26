@@ -1,6 +1,7 @@
 import flask
 
 from datetime import datetime
+from sqlalchemy import or_, func
 from infosystem.common import exception
 from infosystem.common.subsystem import operation, manager
 from infosystem.subsystem.timeline_event.resource \
@@ -27,27 +28,42 @@ class Create(operation.Create):
 
 class GetAll(operation.List):
 
-    def _get_timeline_event_from_user(self, session, user_id: str):
-        timeline_events = session. \
-            query(TimelineEvent). \
-            join(TimelineEventUser,
-                 TimelineEventUser.timeline_event_id == TimelineEvent.id). \
-            filter(TimelineEventUser.user_id == user_id). \
-            distinct(). \
-            all()
-
-        timeline_events = map(lambda e: e, timeline_events)
-        return list(timeline_events)
+    # TODO passar para o driver do infosystem
+    def __filter_params(self, resource, query, **kwargs):
+        for k, v in kwargs.items():
+            if hasattr(resource, k):
+                if isinstance(v, str) and '%' in v:
+                    normalize = func.infosystem_normalize
+                    query = query.filter(normalize(getattr(resource, k))
+                                         .ilike(normalize(v)))
+                else:
+                    query = query.filter(getattr(resource, k) == v)
+        return query
 
     def pre(self, **kwargs):
         self.user_id = kwargs.get('user_id', None)
+        self.initial_date = kwargs.get('initial_date', None)
         if not self.user_id:
             raise exception.BadRequest('Erro! user_id is empty')
         return super().pre(**kwargs)
 
     def do(self, session, **kwargs):
-        timeline_events = self._get_timeline_event_from_user(
-            session, self.user_id)
+        timeline_events = []
+
+        timeline_events_query = session. \
+            query(TimelineEvent). \
+            join(TimelineEventUser,
+                 TimelineEventUser.timeline_event_id == TimelineEvent.id). \
+            filter(or_(self.user_id is None,
+                       TimelineEventUser.user_id == self.user_id),
+                   or_(self.initial_date is None,
+                       TimelineEvent.created_at > self.initial_date),)
+
+        timeline_events_query = self.__filter_params(
+            TimelineEvent, timeline_events_query, **kwargs)
+
+        timeline_events = timeline_events_query.distinct().all()
+
         return timeline_events
 
 
