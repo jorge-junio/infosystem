@@ -1,7 +1,7 @@
 import flask
 
 from datetime import datetime
-from sqlalchemy import or_, func
+from sqlalchemy import or_, and_, func
 from infosystem.common import exception
 from infosystem.common.subsystem import operation, manager
 from infosystem.subsystem.timeline_event.resource \
@@ -42,7 +42,6 @@ class GetAll(operation.List):
 
     def pre(self, **kwargs):
         self.user_id = kwargs.get('user_id', None)
-        self.initial_date = kwargs.get('initial_date', None)
         if not self.user_id:
             raise exception.BadRequest('Erro! user_id is empty')
         return super().pre(**kwargs)
@@ -54,15 +53,15 @@ class GetAll(operation.List):
             query(TimelineEvent). \
             join(TimelineEventUser,
                  TimelineEventUser.timeline_event_id == TimelineEvent.id). \
-            filter(or_(self.user_id is None,
-                       TimelineEventUser.user_id == self.user_id),
-                   or_(self.initial_date is None,
-                       TimelineEvent.created_at > self.initial_date),)
+            filter(TimelineEventUser.user_id == self.user_id)
 
         timeline_events_query = self.__filter_params(
             TimelineEvent, timeline_events_query, **kwargs)
 
-        timeline_events = timeline_events_query.distinct().all()
+        timeline_events = timeline_events_query.distinct(). \
+            order_by(TimelineEvent.created_at.desc()). \
+            limit(TimelineEvent.LIMIT_SEARCH). \
+            all()
 
         return timeline_events
 

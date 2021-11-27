@@ -5,6 +5,8 @@ from infosystem.common.subsystem import entity
 
 class TimelineEvent(entity.Entity, db.Model):
 
+    LIMIT_SEARCH = 30
+
     attributes = ['domain_id', 'event_at', 'event_by', 'lat', 'lon',
                   'description', 'entity', 'entity_id']
     attributes += entity.Entity.attributes

@@ -13,15 +13,6 @@ class Controller(controller.Controller):
         super(Controller, self).__init__(
             manager, resource_wrap, collection_wrap)
 
-    def _get_date(self):
-        return datetime.today() - timedelta(days=20)
-
-    def _get_initial_date_in_args(self):
-        initial_date = flask.request.args.get('initial_date', None)
-        if not initial_date:
-            initial_date = self._get_date()
-        return initial_date
-
     def _get_user_from_token(self):
         if flask.has_request_context():
             token_id = flask.request.headers.get('token')
@@ -30,6 +21,7 @@ class Controller(controller.Controller):
                 return self.token.user_id
         return None
 
+    # TODO descobrir alguma forma de reaproveitar o list do infosystem
     def get_all(self):
         filters = self._filters_parse()
         filters = self._filters_cleanup(filters)
@@ -37,7 +29,6 @@ class Controller(controller.Controller):
         try:
             user_id = self._get_user_from_token()
             filters = self._parse_list_options(filters)
-            filters['initial_date'] = self._get_initial_date_in_args()
 
             if user_id is not None:
                 filters['user_id'] = user_id
