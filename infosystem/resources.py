@@ -81,5 +81,6 @@ USER_RESOURCES = [
     ('/users/<id>/notify', ['POST']),
     ('/users/<id>/update_my_password', ['PUT']),
     ('/users/routes', ['GET']),
-    ('/users/reset', ['POST'])
+    ('/users/reset', ['POST']),
+    ('/timeline_events', ['GET'])
 ]
