@@ -22,7 +22,7 @@ class Controller(controller.Controller):
         return None
 
     # TODO descobrir alguma forma de reaproveitar o list do infosystem
-    def get_all(self):
+    def list(self):
         filters = self._filters_parse()
         filters = self._filters_cleanup(filters)
 
@@ -36,7 +36,7 @@ class Controller(controller.Controller):
                 return flask.Response("user_id not found",
                                       status=403)
 
-            timeline_events = self.manager.get_all(**filters)
+            timeline_events = self.manager.list(**filters)
         except exception.InfoSystemException as exc:
             return flask.Response(response=exc.message,
                                   status=exc.status)
