@@ -32,5 +32,11 @@ class Router(router.Router):
                 'method': 'GET',
                 'url': self.resource_url,
                 'callback': 'get'
+            },
+            {
+                'action': 'delete',
+                'method': 'DELETE',
+                'url': self.resource_url,
+                'callback': 'delete'
             }
         ]
