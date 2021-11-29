@@ -26,7 +26,7 @@ class Create(operation.Create):
         return super().pre(session, **kwargs)
 
 
-class GetAll(operation.List):
+class List(operation.List):
 
     # TODO passar para o driver do infosystem
     def __filter_params(self, resource, query, **kwargs):
@@ -71,4 +71,4 @@ class Manager(manager.Manager):
     def __init__(self, driver) -> None:
         super().__init__(driver)
         self.create = Create(self)
-        self.get_all = GetAll(self)
+        self.list = List(self)
