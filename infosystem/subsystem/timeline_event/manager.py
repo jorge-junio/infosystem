@@ -1,7 +1,8 @@
 import flask
+import uuid
 
 from datetime import datetime
-from sqlalchemy import or_, and_, func
+from sqlalchemy import func
 from infosystem.common import exception
 from infosystem.common.subsystem import operation, manager
 from infosystem.subsystem.timeline_event.resource \
@@ -11,19 +12,26 @@ from infosystem.subsystem.timeline_event.resource \
 class Create(operation.Create):
 
     def pre(self, session, **kwargs):
+        if 'id' not in kwargs:
+            kwargs['id'] = uuid.uuid4().hex
+        if 'created_at' not in kwargs:
+            kwargs['created_at'] = datetime.now()
+        if flask.has_request_context():
+            token_id = flask.request.headers.get('token')
+            if token_id is not None:
+                self.token = self.manager.api.tokens().get(id=token_id)
+                kwargs['created_by'] = self.token.user_id
+                kwargs['event_by'] = self.token.user_id
+        else:
+            kwargs['event_by'] = kwargs['created_by']
+
         kwargs['lat'] = kwargs.get('lat', '0')
         kwargs['lon'] = kwargs.get('lon', '0')
         kwargs['event_at'] = kwargs.get('event_at', datetime.now())
 
-        if 'event_by' not in kwargs:
-            if flask.has_request_context():
-                token_id = flask.request.headers.get('token')
-                if token_id is not None:
-                    self.token = self.manager.api.tokens().get(id=token_id)
-                    kwargs['event_by'] = self.token.user_id
-            else:
-                kwargs['event_by'] = 'integracao'
-        return super().pre(session, **kwargs)
+        self.entity = self.driver.instantiate(**kwargs)
+
+        return self.entity.is_stable()
 
 
 class List(operation.List):
