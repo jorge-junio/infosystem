@@ -133,3 +133,9 @@ class Entity(object):
                         raise
 
         return d
+
+    def get_last_user_id_who_modified(self):
+        if self.updated_by is not None:
+            return self.updated_by
+        else:
+            return self.created_by
