@@ -2,7 +2,8 @@ import os
 
 from PIL import Image
 
-from infosystem.subsystem.image.resource import QualityImage
+from infosystem.subsystem.image.resource import Image as ImageInfosystem, \
+    QualityImage
 
 
 class ImageHandler:
@@ -62,3 +63,14 @@ class ImageHandler:
         thumb = image.copy()
         thumb.thumbnail((width, height))
         thumb.save(name, 'JPEG')
+
+    @staticmethod
+    def verify_size_resolution_image(file) -> str:
+        with Image.open(file) as img:
+            if img.height > ImageInfosystem.ALLOWED_SIZES[0] or \
+               img.width > ImageInfosystem.ALLOWED_SIZES[1]:
+                return 'Imagem tem que ter menos de {}px de largura e menos \
+                    de {}px de altura!'.format(ImageInfosystem.ALLOWED_SIZES[0],
+                                               ImageInfosystem.ALLOWED_SIZES[1])
+
+        return ''

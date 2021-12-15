@@ -5,12 +5,24 @@ from infosystem.common.subsystem import operation
 from infosystem.subsystem.file import manager
 from infosystem.subsystem.image import tasks
 from infosystem.subsystem.image.resource import QualityImage
+from infosystem.subsystem.image.handler import ImageHandler
+from infosystem.common import exception
 
 
 class Create(manager.Create):
 
     def __call__(self, file, **kwargs):
         return super().__call__(file=file, **kwargs)
+
+    def pre(self, session, **kwargs):
+        response = ''
+        if self.file is not None:
+            response = ImageHandler.verify_size_resolution_image(self.file)
+            if response != '':
+                raise exception.InfoSystemException(
+                    response)
+
+        return super().pre(session, **kwargs)
 
     def post(self):
         tasks.process_image(self.upload_folder, self.entity.filename)
