@@ -11,7 +11,7 @@ class QualityImage(enum.Enum):
 
 
 class Image(File, db.Model):
-    ALLOWED_SIZES = (6000, 6000)
+    MAX_ALLOWED_SIZE = (6000, 6000)
 
     attributes = []
     attributes += File.attributes

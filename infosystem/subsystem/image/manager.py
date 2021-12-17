@@ -15,11 +15,10 @@ class Create(manager.Create):
         return super().__call__(file=file, **kwargs)
 
     def pre(self, session, **kwargs):
-        response = ''
         if self.file is not None:
             response = ImageHandler.verify_size_resolution_image(self.file)
-            if response != '':
-                raise exception.InfoSystemException(
+            if response is not None:
+                raise exception.BadRequest(
                     response)
 
         return super().pre(session, **kwargs)

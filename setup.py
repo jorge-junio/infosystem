@@ -35,7 +35,7 @@ REQUIRED_PACKAGES = [
     'packaging==20.9',
     'pbr==5.6.0',
     'pika==1.2.0',
-    'Pillow==8.2.0',
+    'Pillow==8.4.0',
     'pluggy==0.13.1',
     'ply==3.11',
     'prompt-toolkit==3.0.18',
