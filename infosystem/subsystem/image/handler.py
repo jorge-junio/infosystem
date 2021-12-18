@@ -65,8 +65,9 @@ class ImageHandler:
         thumb.save(name, 'JPEG')
 
     @staticmethod
-    def verify_size_resolution_image(file):
-        with Image.open(file) as img:
+    def verify_size_resolution_image(folder, filename):
+        image_path = os.path.join(folder, filename)
+        with Image.open(image_path) as img:
             if img.height > ImageInfosystem.MAX_ALLOWED_SIZE[0] or \
                img.width > ImageInfosystem.MAX_ALLOWED_SIZE[1]:
                 return 'Image must be less than {}px ide and less than {}px \

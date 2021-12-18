@@ -11,17 +11,22 @@ from infosystem.common import exception
 
 class Create(manager.Create):
 
-    def __call__(self, file, **kwargs):
-        return super().__call__(file=file, **kwargs)
+    def do(self, session, **kwargs):
+        super().do(session)
 
-    def pre(self, session, **kwargs):
-        if self.file is not None:
-            response = ImageHandler.verify_size_resolution_image(self.file)
-            if response is not None:
-                raise exception.BadRequest(
-                    response)
+        # TODO (araujobd)  check a better way to improve this
+        # only way to validate resolution of image was after
+        # save temporary file so if exceeds should trigger rollback
+        folder = self.manager.get_upload_folder(self.entity,
+                                                self.entity.domain_id)
+        error_message = ImageHandler.verify_size_resolution_image(
+            folder, self.entity.filename)
+        if error_message is not None:
+            shutil.rmtree(folder)
+            raise exception.BadRequest(error_message)
 
-        return super().pre(session, **kwargs)
+        return self.entity
+        
 
     def post(self):
         tasks.process_image(self.upload_folder, self.entity.filename)
