@@ -70,7 +70,7 @@ class ImageHandler:
         with Image.open(image_path) as img:
             if img.height > ImageInfosystem.MAX_ALLOWED_SIZE[0] or \
                img.width > ImageInfosystem.MAX_ALLOWED_SIZE[1]:
-                return 'Image must be less than {}px ide and less than {}px \
+                return 'Image must be less than {}px and less than {}px \
                     high!'.format(
                         ImageInfosystem.MAX_ALLOWED_SIZE[0],
                         ImageInfosystem.MAX_ALLOWED_SIZE[1])

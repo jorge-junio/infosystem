@@ -26,7 +26,6 @@ class Create(manager.Create):
             raise exception.BadRequest(error_message)
 
         return self.entity
-        
 
     def post(self):
         tasks.process_image(self.upload_folder, self.entity.filename)
