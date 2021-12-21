@@ -1,4 +1,5 @@
 import enum
+from pathlib import Path
 
 from infosystem.database import db
 from infosystem.subsystem.file.resource import File
@@ -32,8 +33,16 @@ class Image(File, db.Model):
     def collection(cls):
         return 'images'
 
-    def filename_with_quality(self, quality: QualityImage):
-        if quality is None:
-            return '{}.{}'.format(self.id, 'jpg')
+    def filename_with_quality(self, quality: QualityImage, folder=None):
+        if folder is not None:
+            if quality is None:
+                return '{}.{}'.format(self.id, 'jpg')
+            else:
+                filename = '{}.{}.{}'.format(self.id, quality.value, 'jpg')
+                file = Path(f'{folder}/{filename}')
+                if file.is_file() is True:
+                    return filename
+                else:
+                    return '{}.{}'.format(self.id, 'jpg')
         else:
-            return '{}.{}.{}'.format(self.id, quality.value, 'jpg')
+            return None

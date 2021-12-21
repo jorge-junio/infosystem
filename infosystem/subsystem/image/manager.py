@@ -41,8 +41,11 @@ class Get(operation.Get):
     def do(self, session, **kwargs):
         file = super().do(session=session, **kwargs)
 
-        filename = file.filename_with_quality(self.quality)
         folder = self.manager.get_upload_folder(file, file.domain_id)
+        filename = file.filename_with_quality(self.quality, folder)
+
+        if filename is None:
+            raise exception.InfoSystemException('File not found!')
 
         return folder, filename
 

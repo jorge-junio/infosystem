@@ -66,12 +66,17 @@ class ImageHandler:
 
     @staticmethod
     def verify_size_resolution_image(folder, filename):
-        image_path = os.path.join(folder, filename)
-        with Image.open(image_path) as img:
-            if img.height > ImageInfosystem.MAX_ALLOWED_SIZE[0] or \
-               img.width > ImageInfosystem.MAX_ALLOWED_SIZE[1]:
-                return 'Image must be less than {}px and less than {}px \
-                    high!'.format(
-                        ImageInfosystem.MAX_ALLOWED_SIZE[0],
-                        ImageInfosystem.MAX_ALLOWED_SIZE[1])
-        return None
+        messageError = ''
+        try:
+            image_path = os.path.join(folder, filename)
+            with Image.open(image_path) as img:
+                if img.height > ImageInfosystem.MAX_ALLOWED_SIZE[0] or \
+                   img.width > ImageInfosystem.MAX_ALLOWED_SIZE[1]:
+                    messageError = 'Image must be less than {}px and less\
+                        than {}px high!'.format(
+                            ImageInfosystem.MAX_ALLOWED_SIZE[0],
+                            ImageInfosystem.MAX_ALLOWED_SIZE[1])
+        except Exception:
+            messageError = 'ERROR: image resolution check failed'
+        finally:
+            return messageError
