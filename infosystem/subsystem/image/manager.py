@@ -45,11 +45,12 @@ class Get(operation.Get):
         folder = self.manager.get_upload_folder(file, file.domain_id)
         filename = file.filename_with_quality(self.quality)
 
-        file = Path(f'{folder}/{filename}')
-        if file.is_file() is False:
+        existingFile = Path(f'{folder}/{filename}')
+        if existingFile.is_file() is False and self.quality is not None:
             filename = file.filename_with_quality(None)
+            existingFile = Path(f'{folder}/{filename}')
 
-        if filename is None:
+        if existingFile.is_file() is False:
             raise exception.InfoSystemException('File not found!')
         else:
             return folder, filename
