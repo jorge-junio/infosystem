@@ -66,7 +66,7 @@ class ImageHandler:
 
     @staticmethod
     def verify_size_resolution_image(folder, filename):
-        messageError = ''
+        messageError = None
         try:
             image_path = os.path.join(folder, filename)
             with Image.open(image_path) as img:

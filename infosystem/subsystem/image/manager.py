@@ -1,5 +1,6 @@
 import os
 import shutil
+from pathlib import Path
 
 from infosystem.common.subsystem import operation
 from infosystem.subsystem.file import manager
@@ -42,12 +43,16 @@ class Get(operation.Get):
         file = super().do(session=session, **kwargs)
 
         folder = self.manager.get_upload_folder(file, file.domain_id)
-        filename = file.filename_with_quality(self.quality, folder)
+        filename = file.filename_with_quality(self.quality)
+
+        file = Path(f'{folder}/{filename}')
+        if file.is_file() is False:
+            filename = file.filename_with_quality(None)
 
         if filename is None:
             raise exception.InfoSystemException('File not found!')
-
-        return folder, filename
+        else:
+            return folder, filename
 
 
 class Delete(operation.Delete):
