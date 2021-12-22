@@ -1,16 +1,32 @@
 import os
 import shutil
+from pathlib import Path
 
 from infosystem.common.subsystem import operation
 from infosystem.subsystem.file import manager
 from infosystem.subsystem.image import tasks
 from infosystem.subsystem.image.resource import QualityImage
+from infosystem.subsystem.image.handler import ImageHandler
+from infosystem.common import exception
 
 
 class Create(manager.Create):
 
-    def __call__(self, file, **kwargs):
-        return super().__call__(file=file, **kwargs)
+    def do(self, session, **kwargs):
+        super().do(session)
+
+        # TODO (araujobd)  check a better way to improve this
+        # only way to validate resolution of image was after
+        # save temporary file so if exceeds should trigger rollback
+        folder = self.manager.get_upload_folder(self.entity,
+                                                self.entity.domain_id)
+        error_message = ImageHandler.verify_size_resolution_image(
+            folder, self.entity.filename)
+        if error_message is not None:
+            shutil.rmtree(folder)
+            raise exception.BadRequest(error_message)
+
+        return self.entity
 
     def post(self):
         tasks.process_image(self.upload_folder, self.entity.filename)
@@ -26,10 +42,18 @@ class Get(operation.Get):
     def do(self, session, **kwargs):
         file = super().do(session=session, **kwargs)
 
-        filename = file.filename_with_quality(self.quality)
         folder = self.manager.get_upload_folder(file, file.domain_id)
+        filename = file.filename_with_quality(self.quality)
 
-        return folder, filename
+        existingFile = Path(f'{folder}/{filename}')
+        if existingFile.is_file() is False and self.quality is not None:
+            filename = file.filename_with_quality(None)
+            existingFile = Path(f'{folder}/{filename}')
+
+        if existingFile.is_file() is False:
+            raise exception.InfoSystemException('File not found!')
+        else:
+            return folder, filename
 
 
 class Delete(operation.Delete):
