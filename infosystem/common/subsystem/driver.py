@@ -1,8 +1,10 @@
-from typing import Any, Type
 import uuid
-from sqlalchemy.orm import exc
-from sqlalchemy import func
+from typing import Any, Type
+
 from infosystem.common import exception
+from sqlalchemy import func
+from sqlalchemy.orm import exc
+from sqlalchemy.sql import text
 
 
 class Driver(object):
@@ -110,6 +112,15 @@ class Driver(object):
 
     def list(self, session, **kwargs):
         query = session.query(self.resource)
+
+        try:
+            page = kwargs.pop('page', None)
+            page = int(page) if page is not None else None
+            page_size = kwargs.pop('page_size', None)
+            page_size = int(page_size) if page_size is not None else None
+        except ValueError:
+            raise exception.BadRequest('page or page_size is invalid')
+
         for k, v in kwargs.items():
             if hasattr(self.resource, k):
                 if isinstance(v, str) and '%' in v:
@@ -118,6 +129,18 @@ class Driver(object):
                                          .ilike(normalize(v)))
                 else:
                     query = query.filter(getattr(self.resource, k) == v)
+
+        name_pagination_column = 'pagination_column'
+        order_by = None
+        if hasattr(self.resource, name_pagination_column):
+            order_by = getattr(self.resource, name_pagination_column)
+        if order_by is not None:
+            query = query.order_by(text(order_by))
+
+        if page_size is not None:
+            query = query.limit(page_size)
+            if page is not None:
+                query = query.offset(page * page_size)
 
         result = query.all()
         return result
