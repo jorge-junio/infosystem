@@ -10,6 +10,8 @@ class Application(entity.Entity, db.Model):
     attributes = ['name', 'description']
     attributes += entity.Entity.attributes
 
+    pagination_column = 'name'
+
     name = db.Column(db.String(30), nullable=False)
     description = db.Column(db.String(1000), nullable=False)
 
