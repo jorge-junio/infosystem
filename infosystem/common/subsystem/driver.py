@@ -118,8 +118,9 @@ class Driver(object):
             page = int(page) if page is not None else None
             page_size = kwargs.pop('page_size', None)
             page_size = int(page_size) if page_size is not None else None
+            order_by = kwargs.pop('order_by', None)
         except ValueError:
-            raise exception.BadRequest('page or page_size is invalid')
+            raise exception.BadRequest('page or page_size or order_by is invalid')
 
         for k, v in kwargs.items():
             if hasattr(self.resource, k):
@@ -131,8 +132,7 @@ class Driver(object):
                     query = query.filter(getattr(self.resource, k) == v)
 
         name_pagination_column = 'pagination_column'
-        order_by = None
-        if hasattr(self.resource, name_pagination_column):
+        if hasattr(self.resource, name_pagination_column) and order_by is None:
             order_by = getattr(self.resource, name_pagination_column)
         if order_by is not None:
             query = query.order_by(text(order_by))
