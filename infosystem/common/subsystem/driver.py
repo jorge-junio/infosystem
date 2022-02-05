@@ -5,7 +5,7 @@ from typing import Any, Type
 from infosystem.common import exception
 from sqlalchemy import func
 from sqlalchemy.orm import exc
-from sqlalchemy.sql import text
+from sqlalchemy.exc import ProgrammingError
 
 
 class Driver(object):
@@ -115,18 +115,22 @@ class Driver(object):
         query = session.query(self.resource)
 
         try:
-            pagination = Pagination.getPagination(self.resource, kwargs)
+            pagination = Pagination.getPagination(self.resource, **kwargs)
         except ValueError:
             raise exception.BadRequest('page or page_size is invalid')
-        
-        query = self.applyFilters(query)
+
+        query = self.applyFilters(query, **kwargs)
 
         try:
             query = pagination.applyPagination(query)
-        except Exception:
-            pass
+        except Exception as e:
+            raise exception.BadRequest(e.message)
 
-        result = query.all()
+        try:
+            result = query.all()
+        except ProgrammingError as progError:
+            print(progError._message())
+            raise exception.BadRequest('Order by is invalid')
         return result
 
     def count(self, session, **kwargs):
@@ -147,5 +151,5 @@ class Driver(object):
                                          .ilike(normalize(v)))
                 else:
                     query = query.filter(getattr(self.resource, k) == v)
-        
+
         return query
