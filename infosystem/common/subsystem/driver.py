@@ -115,16 +115,12 @@ class Driver(object):
         query = session.query(self.resource)
 
         try:
-            pagination = Pagination.getPagination(self.resource, **kwargs)
+            pagination = Pagination.get_pagination(self.resource, **kwargs)
         except ValueError:
             raise exception.BadRequest('page or page_size is invalid')
 
-        query = self.applyFilters(query, **kwargs)
-
-        try:
-            query = pagination.applyPagination(query)
-        except Exception as e:
-            raise exception.BadRequest(e.message)
+        query = self.apply_filters(query, self.resource, **kwargs)
+        query = self.apply_pagination(query, pagination)
 
         try:
             result = query.all()
@@ -142,14 +138,26 @@ class Driver(object):
 
         return result
 
-    def applyFilters(self, query, **kwargs):
+    def apply_filters(self, query, resource, **kwargs):
         for k, v in kwargs.items():
-            if hasattr(self.resource, k):
+            if hasattr(resource, k):
                 if isinstance(v, str) and '%' in v:
                     normalize = func.infosystem_normalize
-                    query = query.filter(normalize(getattr(self.resource, k))
+                    query = query.filter(normalize(getattr(resource, k))
                                          .ilike(normalize(v)))
                 else:
-                    query = query.filter(getattr(self.resource, k) == v)
+                    query = query.filter(getattr(resource, k) == v)
+
+        return query
+    
+    def apply_pagination(self, query, pagination: Pagination):
+        if (pagination.order_by is not None and pagination.page is not None
+                and pagination.page_size is not None):
+            query = query.order_by(text(self.order_by))
+
+        if pagination.page_size is not None:
+            query = query.limit(pagination.page_size)
+            if pagination.page is not None:
+                query = query.offset(pagination.page * pagination.page_size)
 
         return query

@@ -1,6 +1,6 @@
 from typing import Any, Type, Optional
-from sqlalchemy.sql import text
 from infosystem.common import exception
+from infosystem.common.exception import BadRequest
 
 
 class Pagination(object):
@@ -12,34 +12,42 @@ class Pagination(object):
         self.order_by = order_by
 
     @classmethod
-    def getPagination(cls, resource: Type[Any], **kwargs):
-        page = kwargs.pop('page', None)
-        page = int(page) if page is not None else None
-        page_size = kwargs.pop('page_size', None)
-        page_size = int(page_size) if page_size is not None else None
-        order_by = kwargs.pop('order_by', None)
+    def get_pagination(cls, resource: Type[Any], **kwargs):
+        try:
+            page = kwargs.pop('page', None)
+            page = int(page) if page is not None else None
+            page_size = kwargs.pop('page_size', None)
+            page_size = int(page_size) if page_size is not None else None
+            order_by = kwargs.pop('order_by', None)
 
-        name_pagination_column = 'pagination_column'
+            name_pagination_column = 'pagination_column'
 
-        if order_by is None and hasattr(resource, name_pagination_column):
-            order_by = getattr(resource, name_pagination_column)
+            if order_by is None and page is not None and page_size is not None \
+                    and hasattr(resource, name_pagination_column):
+                order_by = getattr(resource, name_pagination_column)
+
+            if page_size is not None and page_size < 0:
+                raise exception.BadRequest(
+                    'page_size must be greater than or equal to zero.')
+            if page is not None and page < 0:
+                raise exception.BadRequest(
+                    'page must be greater than or equal to zero.')
+
+            cls._validate_order_by(order_by, resource)
+        except BadRequest as br:
+            raise exception.BadRequest(br.message)
+        except ValueError:
+            raise exception.BadRequest('page or page_size is invalid')
 
         return cls(page=page, page_size=page_size, order_by=order_by)
 
-    def applyPagination(self, query):
-        if (self.order_by is not None and self.page is not None
-                and self.page_size is not None):
-            query = query.order_by(text(self.order_by))
-
-        if self.page_size is not None:
-            if self.page_size < 0:
-                raise exception.BadRequest(
-                    'page_size must be greater than or equal to zero.')
-            query = query.limit(self.page_size)
-            if self.page is not None:
-                if self.page < 0:
+    def _validate_order_by(order_by: Optional[str], resource: Type[Any]):
+        if order_by is None:
+            return None
+        order_by_post_split = order_by.split(',')
+        for i in order_by_post_split:
+            itemAux = i.strip().split(' ')
+            for j in itemAux:
+                if (j != 'desc' and j != 'asc' and j != '' and not hasattr(resource, j)):
                     raise exception.BadRequest(
-                        'page must be greater than or equal to zero.')
-                query = query.offset(self.page * self.page_size)
-
-        return query
+                        'order_by is invalid.')
