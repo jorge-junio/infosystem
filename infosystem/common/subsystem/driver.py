@@ -6,6 +6,7 @@ from infosystem.common import exception
 from sqlalchemy import func
 from sqlalchemy.orm import exc
 from sqlalchemy.exc import ProgrammingError
+from sqlalchemy.sql import text
 
 
 class Driver(object):
@@ -114,19 +115,12 @@ class Driver(object):
     def list(self, session, **kwargs):
         query = session.query(self.resource)
 
-        try:
-            pagination = Pagination.get_pagination(self.resource, **kwargs)
-        except ValueError:
-            raise exception.BadRequest('page or page_size is invalid')
+        pagination = Pagination.get_pagination(self.resource, **kwargs)
 
         query = self.apply_filters(query, self.resource, **kwargs)
         query = self.apply_pagination(query, pagination)
 
-        try:
-            result = query.all()
-        except ProgrammingError as progError:
-            print(progError._message())
-            raise exception.BadRequest('Order by is invalid')
+        result = query.all()
         return result
 
     def count(self, session, **kwargs):
@@ -149,11 +143,11 @@ class Driver(object):
                     query = query.filter(getattr(resource, k) == v)
 
         return query
-    
+
     def apply_pagination(self, query, pagination: Pagination):
         if (pagination.order_by is not None and pagination.page is not None
                 and pagination.page_size is not None):
-            query = query.order_by(text(self.order_by))
+            query = query.order_by(text(pagination.order_by))
 
         if pagination.page_size is not None:
             query = query.limit(pagination.page_size)
