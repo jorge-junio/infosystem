@@ -1,7 +1,6 @@
 from typing import Any, Type, Optional
 from infosystem.common import exception
 from infosystem.common.exception import BadRequest
-from enum import Enum
 
 
 class Pagination(object):
@@ -51,8 +50,8 @@ class Pagination(object):
 
             if len(splited_item) < 3 and len(splited_item) > 0:
                 if len(splited_item) == 1 or (splited_item[1] == 'asc' or
-                    splited_item[1] == 'desc'):
-                    
+                   splited_item[1] == 'desc'):
+
                     attr = splited_item[0]
                     if hasattr(resource, attr):
                         table_name = resource.__name__.lower()

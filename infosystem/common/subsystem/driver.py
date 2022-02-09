@@ -5,7 +5,6 @@ from typing import Any, Type
 from infosystem.common import exception
 from sqlalchemy import func
 from sqlalchemy.orm import exc
-from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.sql import text
 
 
