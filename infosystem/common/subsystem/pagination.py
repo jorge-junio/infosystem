@@ -72,3 +72,13 @@ class Pagination(object):
             else:
                 raise exception.BadRequest('each order_by item must be one or\
                     two words at most')
+
+    def adjust_order_by(self, resource: Type[Any]):
+        if self.order_by is not None:
+            order_by_ajusted = ''
+            table_name = resource.__name__.lower()
+            order_by_post_split = self.order_by.split(',')
+            for item in order_by_post_split:
+                order_by_ajusted += f'{table_name}.{item},'
+
+            self.order_by = order_by_ajusted[:-1]
