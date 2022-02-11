@@ -1,4 +1,5 @@
 import uuid
+from infosystem.common.subsystem.pagination import Pagination
 from typing import Any, Type
 
 from infosystem.common import exception
@@ -113,34 +114,10 @@ class Driver(object):
     def list(self, session, **kwargs):
         query = session.query(self.resource)
 
-        try:
-            page = kwargs.pop('page', None)
-            page = int(page) if page is not None else None
-            page_size = kwargs.pop('page_size', None)
-            page_size = int(page_size) if page_size is not None else None
-        except ValueError:
-            raise exception.BadRequest('page or page_size is invalid')
+        pagination = Pagination.get_pagination(self.resource, **kwargs)
 
-        for k, v in kwargs.items():
-            if hasattr(self.resource, k):
-                if isinstance(v, str) and '%' in v:
-                    normalize = func.infosystem_normalize
-                    query = query.filter(normalize(getattr(self.resource, k))
-                                         .ilike(normalize(v)))
-                else:
-                    query = query.filter(getattr(self.resource, k) == v)
-
-        name_pagination_column = 'pagination_column'
-        order_by = None
-        if hasattr(self.resource, name_pagination_column):
-            order_by = getattr(self.resource, name_pagination_column)
-        if order_by is not None:
-            query = query.order_by(text(order_by))
-
-        if page_size is not None:
-            query = query.limit(page_size)
-            if page is not None:
-                query = query.offset(page * page_size)
+        query = self.apply_filters(query, self.resource, **kwargs)
+        query = self.apply_pagination(query, pagination)
 
         result = query.all()
         return result
@@ -153,3 +130,27 @@ class Driver(object):
             raise exception.NotFound()
 
         return result
+
+    def apply_filters(self, query, resource, **kwargs):
+        for k, v in kwargs.items():
+            if hasattr(resource, k):
+                if isinstance(v, str) and '%' in v:
+                    normalize = func.infosystem_normalize
+                    query = query.filter(normalize(getattr(resource, k))
+                                         .ilike(normalize(v)))
+                else:
+                    query = query.filter(getattr(resource, k) == v)
+
+        return query
+
+    def apply_pagination(self, query, pagination: Pagination):
+        if (pagination.order_by is not None and pagination.page is not None
+                and pagination.page_size is not None):
+            query = query.order_by(text(pagination.order_by))
+
+        if pagination.page_size is not None:
+            query = query.limit(pagination.page_size)
+            if pagination.page is not None:
+                query = query.offset(pagination.page * pagination.page_size)
+
+        return query
