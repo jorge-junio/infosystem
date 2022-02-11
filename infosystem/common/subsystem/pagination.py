@@ -54,7 +54,7 @@ class Pagination(object):
 
                     attr = splited_item[0]
                     if hasattr(resource, attr):
-                        table_name = resource.__name__.lower()
+                        table_name = resource.__tablename__
                         columns = resource.metadata.tables[table_name].columns\
                             ._all_columns
                         columns_name = list(
@@ -76,7 +76,7 @@ class Pagination(object):
     def adjust_order_by(self, resource: Type[Any]):
         if self.order_by is not None:
             order_by_ajusted = ''
-            table_name = resource.__name__.lower()
+            table_name = resource.__tablename__
             order_by_post_split = self.order_by.split(',')
             for item in order_by_post_split:
                 order_by_ajusted += f'{table_name}.{item},'
