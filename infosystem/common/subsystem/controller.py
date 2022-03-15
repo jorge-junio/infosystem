@@ -135,6 +135,14 @@ class Controller(object):
 
             return collection
 
+    def _clean_filters(self, **kwargs):
+        excludes = ['include', 'page', 'page_size', 'order_by']
+        entityAttrs = dict()
+        for arg in kwargs:
+            if arg not in excludes:
+                entityAttrs.update({arg: kwargs.get(arg, None)})
+        return entityAttrs
+
     def create(self):
         data = flask.request.get_json()
 
@@ -177,6 +185,11 @@ class Controller(object):
         try:
             filters = self._parse_list_options(filters)
             entities = self.manager.list(**filters)
+            with_pagination = (filters.get('page', None)
+                               and filters.get('page_size', None)) is not None
+
+            if with_pagination:
+                count = self.manager.count(**(self._clean_filters(**filters)))
         except exception.InfoSystemException as exc:
             return flask.Response(response=exc.message,
                                   status=exc.status)
@@ -185,6 +198,9 @@ class Controller(object):
             entities, self._get_include_dicts())
 
         response = {self.collection_wrap: collection}
+
+        if with_pagination:
+            response.update({'total': count})
 
         return flask.Response(response=utils.to_json(response),
                               status=200,
