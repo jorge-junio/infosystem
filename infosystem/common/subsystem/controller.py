@@ -200,7 +200,7 @@ class Controller(object):
         response = {self.collection_wrap: collection}
 
         if with_pagination:
-            response.update({'pageLength': count})
+            response.update({'page_length': count})
 
         return flask.Response(response=utils.to_json(response),
                               status=200,
