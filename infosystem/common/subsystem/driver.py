@@ -124,7 +124,8 @@ class Driver(object):
 
     def count(self, session, **kwargs):
         try:
-            rows = session.query(self.resource.id).filter_by(**kwargs).count()
+            query = session.query(self.resource)
+            rows = self.apply_filters(query, self.resource, **kwargs).count()
             result = rows
         except exc.NoResultFound:
             raise exception.NotFound()
