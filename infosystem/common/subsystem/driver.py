@@ -124,6 +124,8 @@ class Driver(object):
 
     def count(self, session, **kwargs):
         try:
+            # TODO(JogeSilva): improve filtering so as not to ignore parameters
+            # that are attributes of an entity to include
             query = session.query(self.resource)
             rows = self.apply_filters(query, self.resource, **kwargs).count()
             result = rows
