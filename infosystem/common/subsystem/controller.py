@@ -135,6 +135,15 @@ class Controller(object):
 
             return collection
 
+    def _clean_filters(self, **kwargs):
+        excludes = ['include', 'page', 'page_size', 'order_by',
+                    'require_pagination']
+        filters_args = dict()
+        for arg in kwargs:
+            if arg not in excludes:
+                filters_args.update({arg: kwargs.get(arg, None)})
+        return filters_args
+
     def create(self):
         data = flask.request.get_json()
 
@@ -177,14 +186,30 @@ class Controller(object):
         try:
             filters = self._parse_list_options(filters)
             entities = self.manager.list(**filters)
+
+            with_pagination = False
+            require_pagination = filters.get('require_pagination', False)
+            page = filters.get('page', None)
+            page_size = filters.get('page_size', None)
+
+            if (page and page_size is not None) and require_pagination is True:
+                with_pagination = True
+                count = self.manager.count(**(self._clean_filters(**filters)))
         except exception.InfoSystemException as exc:
             return flask.Response(response=exc.message,
                                   status=exc.status)
+        except ValueError:
+            raise exception.BadRequest('page or page_size is invalid')
 
         collection = self._entities_to_dict(
             entities, self._get_include_dicts())
 
         response = {self.collection_wrap: collection}
+
+        if with_pagination:
+            response.update({'pagination': {'page': int(page),
+                                            'page_size': int(page_size),
+                                            'total': count}})
 
         return flask.Response(response=utils.to_json(response),
                               status=200,
