@@ -6,6 +6,7 @@ from infosystem.common.subsystem.driver import Driver
 from infosystem.common.subsystem.entity import Entity
 from infosystem.common.subsystem.manager import Manager
 from infosystem.common.subsystem.router import Router
+from infosystem.common.subsystem.transaction_manager import TransactionManager
 
 
 class Subsystem(flask.Blueprint):
@@ -58,7 +59,8 @@ class Subsystem(flask.Blueprint):
 
     def __view_func(self, callback_str: str) -> Callable:
         def wrapper(*args, **kwargs):
-            controller = self.controller
+            transaction_manager = TransactionManager()
+            controller = self.controller_v2(transaction_manager)
 
             if not hasattr(controller, callback_str):
                 message = '{name} controller has no function {function}'.\
@@ -71,7 +73,12 @@ class Subsystem(flask.Blueprint):
                     format(name=self.name, x=callback_str)
                 raise Exception(message)
 
-            return fn(*args, **kwargs)
+            result =  fn(*args, **kwargs)
+            try:
+                transaction_manager.shutdown()
+            except Exception as e:
+                pass
+            return result
         wrapper.__name__ = callback_str
 
         return wrapper
@@ -88,6 +95,9 @@ class Subsystem(flask.Blueprint):
     def lazy_manager(self) -> Callable[[], Manager]:
         return self.manager
 
+    def lazy_manager_v2(self, transaction_manager: TransactionManager) -> Callable[[TransactionManager], Manager]:
+        return self.manager_v2(transaction_manager)
+
     @property
     def manager(self) -> Manager:
         def instantiate() -> Manager:
@@ -97,24 +107,54 @@ class Subsystem(flask.Blueprint):
 
         return instantiate()
 
+    def manager_v2(self, transaction_manager: TransactionManager) -> Manager:
+        def instantiate(transaction_manager: TransactionManager) -> Manager:
+            driver = self.driver_v2(transaction_manager)
+            manager = self.__manager(driver)
+            return manager
+
+        return instantiate(transaction_manager)
+
     @property
     def controller(self) -> Controller:
         def instantiate() -> Controller:
+            transaction_manager = TransactionManager()
             if self.api is not None:
-                api = self.api()
+                api = self.api(transaction_manager)
                 manager_cls = getattr(api, self.name)
                 manager = manager_cls()
             else:
-                manager = self.manager
+                manager = self.manager_v2(transaction_manager)
             return self.__controller(manager,
                                      self.__individual_name,
                                      self.__collection_name)
 
         return instantiate()
 
+    def controller_v2(self, transaction_manager: TransactionManager) -> Controller:
+        def instantiate(transaction_manager: TransactionManager) -> Controller:
+            # transaction_manager = TransactionManager()
+            if self.api is not None:
+                api = self.api(transaction_manager)
+                manager_cls = getattr(api, self.name)
+                manager = manager_cls()
+            else:
+                manager = self.manager_v2(transaction_manager)
+            return self.__controller(manager,
+                                     self.__individual_name,
+                                     self.__collection_name)
+
+        return instantiate(transaction_manager)
+
     @property
     def driver(self) -> Optional[Driver]:
         def instantiate() -> Optional[Driver]:
-            return self.__driver(self.__resource) if self.__resource else None
+            return self.__driver(self.__resource, None) if self.__resource else None
 
         return instantiate()
+
+    def driver_v2(self, transaction_manager: TransactionManager) -> Optional[Driver]:
+        def instantiate(transaction_manager: TransactionManager) -> Optional[Driver]:
+            return self.__driver(self.__resource, transaction_manager) if self.__resource else None
+
+        return instantiate(transaction_manager)

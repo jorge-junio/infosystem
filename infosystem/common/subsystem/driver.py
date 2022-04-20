@@ -7,11 +7,15 @@ from sqlalchemy import func
 from sqlalchemy.orm import exc
 from sqlalchemy.sql import text
 
+from infosystem.common.subsystem.transaction_manager import TransactionManager
+
 
 class Driver(object):
 
-    def __init__(self, resource: Type[Any]) -> None:
+    def __init__(self, resource: Type[Any],
+                 transaction_manager: TransactionManager) -> None:
         self.resource = resource
+        self.transaction_manager = transaction_manager
 
     def removeId(self, entity_aux):
         new_id = uuid.uuid4().hex
@@ -56,8 +60,12 @@ class Driver(object):
     def create(self, entity, session):
         if not entity.is_stable():
             raise exception.PreconditionFailed()
+        import logging
+        logging.warning(str(session))
         session.add(entity)
+        logging.warning(str(self) + 'add session')
         session.flush()
+        logging.warning(str(self) + 'add flush')
 
     def update(self, entity, data, session):
         # try:

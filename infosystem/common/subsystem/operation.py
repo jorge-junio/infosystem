@@ -1,3 +1,4 @@
+from typing import Optional
 import uuid
 import flask
 import sqlalchemy
@@ -8,13 +9,14 @@ from infosystem import database
 from infosystem.common import exception
 from infosystem.common.operation_after_post import \
     operation_after_post_registry
+from infosystem.common.subsystem.driver import Driver
 
 
 class Operation(object):
 
     def __init__(self, manager):
         self.manager = manager
-        self.driver = manager.driver if hasattr(manager, 'driver') else None
+        self.driver: Optional[Driver] = manager.driver if hasattr(manager, 'driver') else None
 
     def pre(self, **kwargs):
         return True
@@ -31,36 +33,45 @@ class Operation(object):
         if not self.pre(session=session, **kwargs):
             raise exception.PreconditionFailed()
 
-        if not getattr(session, 'count', None):
-            setattr(session, 'count', 0)
+        # if not getattr(session, 'count', None):
+        #     setattr(session, 'count', 0)
 
-        session.count += 1
+        # session.count += 1
 
         try:
+            if(self.driver.transaction_manager is not None):
+                self.driver.transaction_manager.begin()
             result = self.do(session, **kwargs)
-            session.count -= 1
+                # session.count -= 1
 
-            if session.count == -1:
-                # raise exception.FatalError
-                print('ERRO! SESSION COUNT COULD NOT BE -1')
+                # if session.count == -1:
+                #     # raise exception.FatalError
+                #     print('ERRO! SESSION COUNT COULD NOT BE -1')
 
-            if session.count == 0:
-                session.commit()
+                # if session.count == 0:
+                #     session.commit()
+            if(self.driver.transaction_manager is not None):
+                self.driver.transaction_manager.commit()
 
             self.post()
             key = (self.manager.__class__, self.__class__)
             fn_after_post = operation_after_post_registry.get(key, None)
             if fn_after_post is not None:
                 fn_after_post(self)
+            session.commit()
 
         except sqlalchemy.exc.IntegrityError as e:
-            session.rollback()
-            session.count -= 1
+            if(self.driver.transaction_manager is not None):
+                self.driver.transaction_manager.rollback()
+            # session.rollback()
+            # session.count -= 1
             msg_info = ''.join(e.args)
             raise exception.DuplicatedEntity(msg_info)
         except Exception as e:
-            session.rollback()
-            session.count -= 1
+            if(self.driver.transaction_manager is not None):
+                self.driver.transaction_manager.rollback()
+            # session.rollback()
+            # session.count -= 1
             raise e
         return result
 
@@ -84,6 +95,9 @@ class Create(Operation):
         return self.entity.is_stable()
 
     def do(self, session, **kwargs):
+        import logging
+        logging.warning(str(self))
+        logging.warning(str(session))
         self.driver.create(self.entity, session=session)
         return self.entity
 
