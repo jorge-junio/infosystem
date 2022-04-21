@@ -28,7 +28,8 @@ class Operation(object):
         pass
 
     def __call__(self, **kwargs):
-        session = kwargs.pop('session', database.db.session)
+        # session = kwargs.pop('session', database.db.session)
+        session = kwargs.pop('session', self.driver.transaction_manager.session)
 
         if not self.pre(session=session, **kwargs):
             raise exception.PreconditionFailed()
@@ -39,8 +40,7 @@ class Operation(object):
         # session.count += 1
 
         try:
-            if(self.driver.transaction_manager is not None):
-                self.driver.transaction_manager.begin()
+            self.driver.transaction_manager.begin()
             result = self.do(session, **kwargs)
                 # session.count -= 1
 
@@ -50,26 +50,22 @@ class Operation(object):
 
                 # if session.count == 0:
                 #     session.commit()
-            if(self.driver.transaction_manager is not None):
-                self.driver.transaction_manager.commit()
+            self.driver.transaction_manager.commit()
 
             self.post()
             key = (self.manager.__class__, self.__class__)
             fn_after_post = operation_after_post_registry.get(key, None)
             if fn_after_post is not None:
                 fn_after_post(self)
-            session.commit()
 
         except sqlalchemy.exc.IntegrityError as e:
-            if(self.driver.transaction_manager is not None):
-                self.driver.transaction_manager.rollback()
+            self.driver.transaction_manager.rollback()
             # session.rollback()
             # session.count -= 1
             msg_info = ''.join(e.args)
             raise exception.DuplicatedEntity(msg_info)
         except Exception as e:
-            if(self.driver.transaction_manager is not None):
-                self.driver.transaction_manager.rollback()
+            self.driver.transaction_manager.rollback()
             # session.rollback()
             # session.count -= 1
             raise e

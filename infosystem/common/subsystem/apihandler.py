@@ -35,6 +35,10 @@ class Api(object):
 
         return wrapper
 
+    @property
+    def transaction_manager(self):
+        return self.__transaction_manager
+
 
 class ApiHandler(object):
 
@@ -45,9 +49,9 @@ class ApiHandler(object):
         self.__bootstrap_resources = self.__get_resources(bootstrap_resources)
 
     def api(self, transaction_manager: TransactionManager = None) -> Api:
-        return Api(self.__managers_dict,
-                   self.__bootstrap_resources,
-                   transaction_manager)
+        tm = transaction_manager if transaction_manager is not None \
+            else TransactionManager()
+        return Api(self.__managers_dict, self.__bootstrap_resources, tm)
 
     def __get_resources(self, bootstrap_resources):
         def resources():
