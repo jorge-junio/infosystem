@@ -1,4 +1,5 @@
-from infosystem.database import db, new_session
+from infosystem import database
+from infosystem.database import db #, new_session
 
 import logging
 
@@ -9,11 +10,13 @@ logger = logging.getLogger('vex')
 logger.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 
+
 class TransactionManager(object):
 
-    def __init__(self) -> None:
+    def __init__(self, session=None) -> None:
 
-        self.session = new_session()
+        # self.session = session if session is not None else new_session()
+        self.session = database.db.session
         # self.session = db.session
         self.count = 0
 
@@ -36,6 +39,9 @@ class TransactionManager(object):
         logger.info('rollback ---- ' +  str(self.count)  + ' ----  ' + str(self.session))
         self.session.rollback()
         self.count = -1000000
-    
+
     def shutdown(self):
-        self.session.close()
+        # logger.info('CLOSE ---- ')
+        # if self.count == 0:
+        #     self.session.close()
+        pass
