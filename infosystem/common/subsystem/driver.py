@@ -60,12 +60,8 @@ class Driver(object):
     def create(self, entity, session):
         if not entity.is_stable():
             raise exception.PreconditionFailed()
-        import logging
-        logging.warning(str(session))
         session.add(entity)
-        logging.warning(str(self) + 'add session')
         session.flush()
-        logging.warning(str(self) + 'add flush')
 
     def update(self, entity, data, session):
         # try:

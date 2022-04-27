@@ -44,7 +44,7 @@ class ApiHandler(object):
 
     def __init__(self, subsystems: Dict[str, Subsystem],
                  bootstrap_resources: Dict[str, RouteResource]) -> None:
-        self.__managers_dict = {name: s.lazy_manager_v2
+        self.__managers_dict = {name: s.lazy_manager
                                 for name, s in subsystems.items()}
         self.__bootstrap_resources = self.__get_resources(bootstrap_resources)
 

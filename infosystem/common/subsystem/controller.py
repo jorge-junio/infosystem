@@ -145,8 +145,6 @@ class Controller(object):
         return filters_args
 
     def create(self):
-        import logging
-        logging.warning(str(self))
         data = flask.request.get_json()
 
         try:

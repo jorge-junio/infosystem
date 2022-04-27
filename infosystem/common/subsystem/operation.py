@@ -5,7 +5,6 @@ import sqlalchemy
 
 # TODO this import here is so strange
 from datetime import datetime
-from infosystem import database
 from infosystem.common import exception
 from infosystem.common.operation_after_post import \
     operation_after_post_registry
@@ -28,31 +27,20 @@ class Operation(object):
         pass
 
     def __call__(self, **kwargs):
-        # session = kwargs.pop('session', database.db.session)
         session = kwargs.pop('session', self.driver.transaction_manager.session)
 
         if not self.pre(session=session, **kwargs):
             raise exception.PreconditionFailed()
 
-        # if not getattr(session, 'count', None):
-        #     setattr(session, 'count', 0)
-
-        # session.count += 1
-
         try:
             self.driver.transaction_manager.begin()
+
             result = self.do(session, **kwargs)
-                # session.count -= 1
 
-                # if session.count == -1:
-                #     # raise exception.FatalError
-                #     print('ERRO! SESSION COUNT COULD NOT BE -1')
-
-                # if session.count == 0:
-                #     session.commit()
             self.driver.transaction_manager.commit()
 
             self.post()
+
             key = (self.manager.__class__, self.__class__)
             fn_after_post = operation_after_post_registry.get(key, None)
             if fn_after_post is not None:
@@ -60,14 +48,10 @@ class Operation(object):
 
         except sqlalchemy.exc.IntegrityError as e:
             self.driver.transaction_manager.rollback()
-            # session.rollback()
-            # session.count -= 1
             msg_info = ''.join(e.args)
             raise exception.DuplicatedEntity(msg_info)
         except Exception as e:
             self.driver.transaction_manager.rollback()
-            # session.rollback()
-            # session.count -= 1
             raise e
         return result
 
@@ -91,9 +75,6 @@ class Create(Operation):
         return self.entity.is_stable()
 
     def do(self, session, **kwargs):
-        import logging
-        logging.warning(str(self))
-        logging.warning(str(session))
         self.driver.create(self.entity, session=session)
         return self.entity
 
