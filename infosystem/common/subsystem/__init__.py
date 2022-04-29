@@ -92,20 +92,8 @@ class Subsystem(flask.Blueprint):
     def validate_routes(self) -> List[str]:
         return self.__validate_routes(self.router.routes, self.__controller)
 
-    # def lazy_manager(self) -> Callable[[], Manager]:
-    #     return self.manager
-
     def lazy_manager(self, transaction_manager: TransactionManager) -> Callable[[TransactionManager], Manager]:
         return self.manager(transaction_manager)
-
-    # @property
-    # def manager(self) -> Manager:
-    #     def instantiate() -> Manager:
-    #         driver = self.driver
-    #         manager = self.__manager(driver)
-    #         return manager
-
-    #     return instantiate()
 
     def manager(self, transaction_manager: TransactionManager) -> Manager:
         def instantiate(transaction_manager: TransactionManager) -> Manager:
@@ -115,25 +103,8 @@ class Subsystem(flask.Blueprint):
 
         return instantiate(transaction_manager)
 
-    # @property
-    # def controller(self) -> Controller:
-    #     def instantiate() -> Controller:
-    #         transaction_manager = TransactionManager()
-    #         if self.api is not None:
-    #             api = self.api(transaction_manager)
-    #             manager_cls = getattr(api, self.name)
-    #             manager = manager_cls()
-    #         else:
-    #             manager = self.manager_v2(transaction_manager)
-    #         return self.__controller(manager,
-    #                                  self.__individual_name,
-    #                                  self.__collection_name)
-
-    #     return instantiate()
-
     def controller(self, transaction_manager: TransactionManager) -> Controller:
         def instantiate(transaction_manager: TransactionManager) -> Controller:
-            # transaction_manager = TransactionManager()
             if self.api is not None:
                 api = self.api(transaction_manager)
                 manager_cls = getattr(api, self.name)
@@ -145,13 +116,6 @@ class Subsystem(flask.Blueprint):
                                      self.__collection_name)
 
         return instantiate(transaction_manager)
-
-    # @property
-    # def driver(self) -> Optional[Driver]:
-    #     def instantiate() -> Optional[Driver]:
-    #         return self.__driver(self.__resource, None) if self.__resource else None
-
-    #     return instantiate()
 
     def driver(self, transaction_manager: TransactionManager) -> Optional[Driver]:
         def instantiate(transaction_manager: TransactionManager) -> Optional[Driver]:
