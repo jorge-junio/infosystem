@@ -1,20 +1,21 @@
+from typing import Optional
 import uuid
 import flask
 import sqlalchemy
 
 # TODO this import here is so strange
 from datetime import datetime
-from infosystem import database
 from infosystem.common import exception
 from infosystem.common.operation_after_post import \
     operation_after_post_registry
+from infosystem.common.subsystem.driver import Driver
 
 
 class Operation(object):
 
     def __init__(self, manager):
         self.manager = manager
-        self.driver = manager.driver if hasattr(manager, 'driver') else None
+        self.driver: Optional[Driver] = manager.driver if hasattr(manager, 'driver') else None
 
     def pre(self, **kwargs):
         return True
@@ -26,41 +27,31 @@ class Operation(object):
         pass
 
     def __call__(self, **kwargs):
-        session = kwargs.pop('session', database.db.session)
+        session = kwargs.pop('session', self.driver.transaction_manager.session)
 
         if not self.pre(session=session, **kwargs):
             raise exception.PreconditionFailed()
 
-        if not getattr(session, 'count', None):
-            setattr(session, 'count', 0)
-
-        session.count += 1
-
         try:
+            self.driver.transaction_manager.begin()
+
             result = self.do(session, **kwargs)
-            session.count -= 1
 
-            if session.count == -1:
-                # raise exception.FatalError
-                print('ERRO! SESSION COUNT COULD NOT BE -1')
-
-            if session.count == 0:
-                session.commit()
+            self.driver.transaction_manager.commit()
 
             self.post()
+
             key = (self.manager.__class__, self.__class__)
             fn_after_post = operation_after_post_registry.get(key, None)
             if fn_after_post is not None:
                 fn_after_post(self)
 
         except sqlalchemy.exc.IntegrityError as e:
-            session.rollback()
-            session.count -= 1
+            self.driver.transaction_manager.rollback()
             msg_info = ''.join(e.args)
             raise exception.DuplicatedEntity(msg_info)
         except Exception as e:
-            session.rollback()
-            session.count -= 1
+            self.driver.transaction_manager.rollback()
             raise e
         return result
 

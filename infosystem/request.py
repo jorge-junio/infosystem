@@ -2,6 +2,7 @@ import flask
 import uuid
 
 from infosystem.common import exception
+from infosystem.common.subsystem.apihandler import Api, ApiHandler
 
 
 class Request(flask.Request):
@@ -39,10 +40,11 @@ class Request(flask.Request):
 
 class RequestManager(object):
 
-    def __init__(self, subsystems):
-        self.subsystems = subsystems
+    def __init__(self, api_handler: ApiHandler):
+        self.api_handler = api_handler
 
     def before_request(self):
+        api: Api = self.api_handler.api()
         if flask.request.method == 'OPTIONS':
             return
 
@@ -52,8 +54,8 @@ class RequestManager(object):
         if not flask.request.url:
             return
 
-        routes = self.subsystems['routes'].manager.list(
-            url=flask.request.url, method=flask.request.method)
+        routes = api.routes().list(url=flask.request.url,
+                                   method=flask.request.method)
         if not routes:
             return flask.Response(response=None, status=404)
         route = routes[0]
@@ -70,12 +72,11 @@ class RequestManager(object):
             return flask.Response(response=None, status=401)
 
         try:
-            token = self.subsystems['tokens'].manager.get(id=token_id)
+            token = api.tokens().get(id=token_id)
         except exception.NotFound:
             return flask.Response(response=None, status=401)
 
-        can_access = self.subsystems['users'].manager.authorize(
-            user_id=token.user_id, route=route)
+        can_access = api.users().authorize(user_id=token.user_id, route=route)
 
         if not can_access:
             return flask.Response(response=None, status=403)

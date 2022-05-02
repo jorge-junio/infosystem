@@ -53,7 +53,7 @@ class SystemFlask(flask.Flask):
         self.add_url_rule('/', view_func=self.version, methods=['GET'])
 
         self.before_request(
-            request.RequestManager(self.subsystems).before_request)
+            request.RequestManager(self.api_handler).before_request)
 
     def configure(self):
         self.config['BASEDIR'] = os.path.abspath(os.path.dirname(__file__))
