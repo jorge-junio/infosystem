@@ -143,6 +143,62 @@ class GetRoles(operation.Operation):
         return roles
 
 
+class UpdateSettings(operation.Update):
+
+    def pre(self, session, id: str, **kwargs) -> bool:
+        self.settings = kwargs
+        if self.settings is None or not self.settings:
+            raise exception.BadRequest("Erro! There is not a setting")
+        return super().pre(session=session, id=id)
+
+    def do(self, session, **kwargs):
+        result = {}
+        for key, value in self.settings.items():
+            new_value = self.entity.update_setting(key, value)
+            result[key] = new_value
+        super().do(session)
+
+        return result
+
+
+class RemoveSettings(operation.Update):
+
+    def pre(self, session, id: str, **kwargs) -> bool:
+        self.keys = kwargs.get('keys', [])
+        if not self.keys:
+            raise exception.BadRequest('Erro! keys are empty')
+        super().pre(session, id=id)
+
+        return self.entity.is_stable()
+
+    def do(self, session, **kwargs):
+        result = {}
+        for key in self.keys:
+            value = self.entity.remove_setting(key)
+            result[key] = value
+        super().do(session=session)
+
+        return result
+
+
+class GetApplicationSettingsByKeys(operation.Get):
+
+    def pre(self, session, id, **kwargs):
+        self.keys = kwargs.get('keys', [])
+        if not self.keys:
+            raise exception.BadRequest('Erro! keys are empty')
+        return super().pre(session, id=id)
+
+    def do(self, session, **kwargs):
+        entity = super().do(session=session)
+        settings = {}
+        for key in self.keys:
+            value = entity.settings.get(key, None)
+            if value is not None:
+                settings[key] = value
+        return settings
+
+
 class Manager(manager.Manager):
 
     def __init__(self, driver):
@@ -153,3 +209,7 @@ class Manager(manager.Manager):
         self.create_admin_capabilities_and_policies = \
             CreateAdminCapabilitiesAndPolicies(self)
         self.get_roles = GetRoles(self)
+        self.update_settings = UpdateSettings(self)
+        self.remove_settings = RemoveSettings(self)
+        self.get_application_settings_by_keys = \
+            GetApplicationSettingsByKeys(self)
