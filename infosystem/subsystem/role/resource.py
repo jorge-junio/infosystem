@@ -6,9 +6,13 @@ from infosystem.database import db
 from sqlalchemy import UniqueConstraint
 
 
-class RoleType(Enum):
-    MULTI_DOMAIN = 0
-    ADMIN = 1
+class RoleDataViewType(Enum):
+    MULTI_DOMAIN = {
+        'id': 0,
+        'description': 'tem acesso aos dados de mais de um domínio.'}
+    DOMAIN = {
+        'id': 1,
+        'description': 'tem acesso aos dados de apenas um domínio.'}
 
 
 class Role(entity.Entity, db.Model):
@@ -17,20 +21,21 @@ class Role(entity.Entity, db.Model):
     SYSADMIN = 'Sysadmin'
     ADMIN = 'Admin'
 
-    attributes = ['name', 'role_type']
+    attributes = ['name', 'data_view']
     attributes += entity.Entity.attributes
 
     name = db.Column(db.String(80), nullable=False)
-    role_type = db.Column(sqlalchemy.Enum(RoleType), nullable=False,
-                          default=RoleType.ADMIN, server_default='ADMIN')
+    data_view = db.Column(sqlalchemy.Enum(RoleDataViewType), nullable=False,
+                          default=RoleDataViewType.DOMAIN,
+                          server_default='DOMAIN')
 
     __table_args__ = (
         UniqueConstraint('name', name='role_name_uk'),)
 
-    def __init__(self, id, name, role_type,
+    def __init__(self, id, name, data_view,
                  active=True, created_at=None, created_by=None,
                  updated_at=None, updated_by=None, tag=None):
         super().__init__(id, active, created_at, created_by,
                          updated_at, updated_by, tag)
         self.name = name
-        self.role_type = role_type
+        self.data_view = data_view
