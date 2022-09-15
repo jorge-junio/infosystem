@@ -2,8 +2,16 @@ from typing import List, Optional
 from infosystem.common import exception, utils
 from infosystem.common.subsystem import manager
 from infosystem.common.subsystem import operation
-from infosystem.subsystem.role.resource import Role
+from infosystem.subsystem.role.resource import Role, RoleDataViewType
 from infosystem.subsystem.policy.resource import Policy
+
+
+class Create(operation.Create):
+
+    def pre(self, session, **kwargs):
+        if kwargs.get('data_view', None) is None:
+            kwargs['data_view'] = RoleDataViewType.DOMAIN
+        return super().pre(session, **kwargs)
 
 
 class CreatePolicies(operation.Operation):
@@ -57,8 +65,16 @@ class CreatePolicies(operation.Operation):
 
 class CreateRoles(operation.Operation):
 
+    def set_role_data_view_type_in_roles(self, roles: List[Role]):
+        roles_aux = []
+        for role in roles:
+            if role.get('data_view', None) is None:
+                role['data_view'] = RoleDataViewType.DOMAIN
+            roles_aux.append(role)
+        return roles_aux
+
     def pre(self, roles: List[Role], session, **kwargs) -> bool:
-        self.roles = roles
+        self.roles = self.set_role_data_view_type_in_roles(roles)
         return True
 
     def do(self, session, **kwargs) -> List[Role]:
@@ -80,6 +96,7 @@ class Manager(manager.Manager):
 
     def __init__(self, driver):
         super().__init__(driver)
+        self.create = Create(self)
         self.create_policies = CreatePolicies(self)
         self.create_roles = CreateRoles(self)
         self.get_role_by_name = GetRoleByName(self)
