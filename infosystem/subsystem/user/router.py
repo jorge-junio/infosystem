@@ -35,5 +35,9 @@ class Router(router.Router):
                 'callback': 'delete_photo'},
             {'action': 'notify', 'method': 'POST',
                 'url': self.resource_url + '/notify',
-                'callback': 'notify'}
+                'callback': 'notify'},
+            
+            {'action': 'roles', 'method': 'GET',
+                'url': self.resource_url + '/roles',
+                'callback': 'roles'},
         ]
