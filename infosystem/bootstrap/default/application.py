@@ -20,4 +20,7 @@ class BootstrapApplication(object):
                            description="Application Default")
 
     def _save_application(self, application: Application) -> Application:
-        return self.application_manager.create(**application.to_dict())
+        data = application.to_dict()
+        if 'settings' in data.keys():
+            data.pop('settings')
+        return self.application_manager.create(**data)
