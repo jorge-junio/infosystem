@@ -142,6 +142,18 @@ class Routes(operation.Operation):
         return routes
 
 
+class Roles(operation.Operation):
+
+    def do(self, session, user_id, **kwargs):
+        roles = session.query(Role). \
+            join(Grant, Grant.role_id == Role.id). \
+            filter(Grant.user_id == user_id). \
+            distinct(). \
+            all()
+
+        return roles
+
+
 class Authorization(operation.Operation):
 
     def do(self, session, user_id, route, **kwargs):
@@ -236,6 +248,7 @@ class Manager(manager.Manager):
         self.delete_photo = DeletePhoto(self)
         self.notify = Notify(self)
         self.authorize = Authorization(self)
+        self.roles = Roles(self)
 
     def hash_password(self, password):
         return hashlib.sha256(password.encode('utf-8')).hexdigest()

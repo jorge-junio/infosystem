@@ -1,7 +1,6 @@
-import json
 import flask
 
-from infosystem.common import exception
+from infosystem.common import exception, utils
 from infosystem.common.subsystem import controller
 
 
@@ -43,6 +42,6 @@ class Controller(controller.Controller):
                 timeline_events, self._get_include_dicts())
         response = {self.collection_wrap: timeline_events_dict}
 
-        return flask.Response(response=json.dumps(response, default=str),
+        return flask.Response(response=utils.to_json(response),
                               status=200,
                               mimetype="application/json")

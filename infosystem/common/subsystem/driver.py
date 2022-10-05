@@ -141,7 +141,18 @@ class Driver(object):
     def apply_filters(self, query, resource, **kwargs):
         for k, v in kwargs.items():
             if hasattr(resource, k):
-                if isinstance(v, str) and '%' in v:
+                if k == 'tag':
+                    # TODO(JorgeSilva): definir o caractere para split
+                    values = v
+                    if len(v) > 0:
+                        values = v[1:]
+                    values = values.split(',')
+                    for value in values:
+                        normalize = func.infosystem_normalize
+                        query = query.filter(
+                            normalize(getattr(resource, k))
+                            .like(normalize('%'+str(value)+'%')))
+                elif isinstance(v, str) and '%' in v:
                     normalize = func.infosystem_normalize
                     query = query.filter(normalize(getattr(resource, k))
                                          .ilike(normalize(v)))
