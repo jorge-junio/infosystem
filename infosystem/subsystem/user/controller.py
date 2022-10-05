@@ -192,3 +192,16 @@ class Controller(controller.Controller):
         return flask.Response(response=None,
                               status=204,
                               mimetype="application/json")
+
+    def roles(self, id):
+        try:
+            roles = self.manager.roles(user_id=id)
+        except exception.InfoSystemException as exc:
+            return flask.Response(response=exc.message,
+                                  status=exc.status)
+
+        response = {"roles": [role.to_dict() for role in roles]}
+
+        return flask.Response(response=json.dumps(response, default=str),
+                              status=200,
+                              mimetype="application/json")
