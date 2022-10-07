@@ -5,7 +5,7 @@ from infosystem.common.subsystem import entity
 
 class Tag(entity.Entity, db.Model):
 
-    attributes = ['domain_id', 'name', 'color', 'description']
+    attributes = ['domain_id', 'name', 'color', 'description', 'tag_name']
     attributes += entity.Entity.attributes
 
     domain_id = db.Column(
