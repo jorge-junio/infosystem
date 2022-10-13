@@ -15,8 +15,15 @@ class GetTagsFromEntity(operation.List):
 
     def do(self, session, **kwargs):
         sql_query = (
-            'SELECT DISTINCT UNNEST(STRING_TO_ARRAY(tag, \' \')) as tag'
-            ' FROM {} WHERE domain_id=\'{}\' ORDER BY tag')
+            'SELECT aux.tag' +
+            ' FROM ( SELECT DISTINCT UNNEST(STRING_TO_ARRAY(tag, \' \'))' +
+            ' AS tag FROM {} WHERE domain_id = \'{}\') AS aux')
+
+        tag_name = kwargs.get('tag_name', None)
+        if tag_name:
+            sql_query += (f' WHERE aux.tag ILIKE \'%{tag_name}\'')
+
+        sql_query += ' ORDER BY aux.tag ASC'
 
         page = kwargs.get('page', None)
         page_size = kwargs.get('page_size', None)
