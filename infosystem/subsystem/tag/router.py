@@ -13,6 +13,7 @@ class Router(router.Router):
                 'action': 'get tags from an entity',
                 'method': 'GET',
                 'url': self.collection_url + '/get_tags_from_entity',
-                'callback': 'get_tags_from_entity'
+                'callback': 'get_tags_from_entity',
+                'bypass': True
             },
         ]
