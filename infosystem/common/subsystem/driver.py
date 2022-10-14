@@ -3,7 +3,7 @@ from infosystem.common.subsystem.pagination import Pagination
 from typing import Any, Type
 
 from infosystem.common import exception
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import exc
 from sqlalchemy.sql import text
 
@@ -142,16 +142,16 @@ class Driver(object):
         for k, v in kwargs.items():
             if hasattr(resource, k):
                 if k == 'tag':
-                    # TODO(JorgeSilva): definir o caractere para split
                     values = v
-                    if len(v) > 0:
+                    if len(v) > 0 and v[0] == '#':
                         values = v[1:]
                     values = values.split(',')
+                    filter_tags = []
                     for value in values:
-                        normalize = func.infosystem_normalize
-                        query = query.filter(
-                            normalize(getattr(resource, k))
-                            .like(normalize('%'+str(value)+'%')))
+                        filter_tags.append(
+                            getattr(resource, k)
+                            .like('%'+str(value)+'%'))
+                    query = query.filter(or_(*filter_tags))
                 elif isinstance(v, str) and '%' in v:
                     normalize = func.infosystem_normalize
                     query = query.filter(normalize(getattr(resource, k))
