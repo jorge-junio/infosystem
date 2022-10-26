@@ -150,7 +150,7 @@ class Driver(object):
                     for value in values:
                         filter_tags.append(
                             getattr(resource, k)
-                            .like('%'+str(value)+'%'))
+                            .like('%#' + str(value) + ' %'))
                     query = query.filter(or_(*filter_tags))
                 elif isinstance(v, str) and '%' in v:
                     normalize = func.infosystem_normalize

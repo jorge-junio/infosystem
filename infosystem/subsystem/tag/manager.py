@@ -32,9 +32,8 @@ class GetTagsFromEntity(operation.List):
             sql_query += (f' LIMIT {page_size} OFFSET {page}')
 
         rs = session.execute(sql_query.format(self.entity_name, self.domain_id))
-        # response = [r._mapping['tag'] for r in rs
-        #             if r._mapping['tag'] is not None]
-        response = [r._mapping['tag'] for r in rs]
+        response = [r._mapping['tag'] for r in rs
+                    if r._mapping['tag'] is not None]
         return response
 
 
