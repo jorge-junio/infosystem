@@ -26,13 +26,9 @@ class List(operation.List):
                     values = v
                     if len(v) > 0 and v[0] == '#':
                         values = v[1:]
-                    values = values.split(',')
                     filter_tags = []
-                    for value in values:
-                        filter_tags.append(
-                            getattr(resource, k)
-                            .like('#' + str(value)))
-                    query = query.filter(or_(*filter_tags))
+                    query = query.filter(
+                        getattr(resource, k) == '#' + str(values) + ' ')
                 elif isinstance(v, str) and '%' in v:
                     normalize = func.infosystem_normalize
                     query = query.filter(normalize(getattr(resource, k))
